@@ -125,22 +125,22 @@ func (cl *Client) SignRequest(ctx context.Context, req *http.Request, body io.Re
 	var payload_hash string
 
 	if body != nil {
-		
+
 		h := sha256.New()
 		_, err = io.Copy(h, body)
-		
+
 		if err != nil {
 			return fmt.Errorf("Failed to copy body to hash, %w", err)
 		}
-		
+
 		payload_hash = fmt.Sprintf("%x", h.Sum(nil))
-		
+
 	} else {
 
 		sum := sha256.Sum256([]byte(""))
 		payload_hash = fmt.Sprintf("%x", sum)
 	}
-	
+
 	signer := v4.NewSigner()
 
 	service := "lambda"

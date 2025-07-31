@@ -29,7 +29,7 @@ func CreateTables(ctx context.Context, client *aws_dynamodb.Client, opts *Create
 			slog.Debug("Assign prefix to table name", "table", table_name, "prefix", opts.Prefix)
 			table_name = opts.Prefix + table_name
 		}
-			
+
 		// To do: Do this concurrently because of the delay waiting for table deletion to complete
 
 		has_table, err := HasTable(ctx, client, table_name)
