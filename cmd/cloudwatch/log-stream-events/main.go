@@ -87,7 +87,7 @@ func main() {
 		dur, err := duration.FromString(since)
 
 		if err != nil {
-			log.Fatalf("Failed to parse -since flag, %w", err)
+			log.Fatalf("Failed to parse -since flag, %v", err)
 		}
 
 		now := time.Now()
