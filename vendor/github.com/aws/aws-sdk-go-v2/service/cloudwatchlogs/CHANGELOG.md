@@ -1,3 +1,24 @@
+# v1.57.2 (2025-08-29)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.57.1 (2025-08-27)
+
+* **Dependency Update**: Update to smithy-go v1.23.0.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.57.0 (2025-08-25)
+
+* **Feature**: Remove incorrect endpoint tests
+
+# v1.56.2 (2025-08-21)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.56.1 (2025-08-20)
+
+* **Bug Fix**: Remove unused deserialization code.
+
 # v1.56.0 (2025-08-11)
 
 * **Feature**: Add support for configuring per-service Options via callback on global config.
