@@ -10,6 +10,7 @@ cli:
 	@make cli-cloudwatch
 	@make cli-dynamodb
 	@make cli-ecs
+	@make cli-ec2
 	@make cli-lambda
 
 cli-auth:
@@ -36,6 +37,9 @@ cli-dynamodb:
 
 cli-ecs:
 	go build -mod $(GOMOD) -ldflags="$(LDFLAGS)" -o bin/ecs-launch-task cmd/ecs-launch-task/main.go
+
+cli-ec2:
+	go build -mod $(GOMOD) -ldflags="$(LDFLAGS)" -o bin/ec2-public-ip cmd/ec2-public-ip/main.go
 
 cli-lambda:
 	go build -mod $(GOMOD) -ldflags "$(LDFLAGS)" -o bin/lambda-invoke cmd/lambda-invoke/main.go
