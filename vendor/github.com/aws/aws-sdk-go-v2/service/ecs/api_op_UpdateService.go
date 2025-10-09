@@ -157,8 +157,8 @@ type UpdateServiceInput struct {
 	// The default behavior of AvailabilityZoneRebalancing differs between create and
 	// update requests:
 	//
-	//   - For create service requests, when when no value is specified for
-	//   AvailabilityZoneRebalancing , Amazon ECS defaults the value to to ENABLED .
+	//   - For create service requests, when no value is specified for
+	//   AvailabilityZoneRebalancing , Amazon ECS defaults the value to ENABLED .
 	//
 	//   - For update service requests, when no value is specified for
 	//   AvailabilityZoneRebalancing , Amazon ECS defaults to the existing service’s
@@ -264,6 +264,9 @@ type UpdateServiceInput struct {
 	// years). During that time, the Amazon ECS service scheduler ignores health check
 	// status. This grace period can prevent the service scheduler from marking tasks
 	// as unhealthy and stopping them before they have time to come up.
+	//
+	// If your service has more running tasks than desired, unhealthy tasks in the
+	// grace period might be stopped to reach the desired count.
 	//
 	// This parameter doesn't trigger a new service deployment.
 	HealthCheckGracePeriodSeconds *int32

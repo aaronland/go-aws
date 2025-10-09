@@ -1,3 +1,23 @@
+# v1.65.1 (2025-10-01)
+
+* **Documentation**: This is a documentation only Amazon ECS release that adds additional information for health checks.
+
+# v1.65.0 (2025-09-30)
+
+* **Feature**: This release adds support for Managed Instances on Amazon ECS.
+
+# v1.64.2 (2025-09-26)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.64.1 (2025-09-23)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.64.0 (2025-09-11)
+
+* **Feature**: This release supports hook details for Amazon ECS lifecycle hooks.
+
 # v1.63.7 (2025-09-10)
 
 * No change notes available for this release.
