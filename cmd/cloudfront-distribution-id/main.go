@@ -14,7 +14,7 @@ func main() {
 
 	var client_uri string
 	var hostname string
-	
+
 	flag.StringVar(&client_uri, "client-uri", "", "A valid client URI in the form of 'aws://?region={AWS_REGION}&credentials={CREDENTIALS}' where '{CREDENTIAL}' is expected to be a valid aaronland/go-aws-auth credential string.")
 	flag.StringVar(&hostname, "hostname", "", "The hostname to derive a CloudFront distibution ID for.")
 

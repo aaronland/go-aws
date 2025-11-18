@@ -8,12 +8,12 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.18.24
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.13
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.56.2
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.58.9
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.59.0
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentity v1.33.12
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.52.6
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.270.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.271.0
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.67.4
-	github.com/aws/aws-sdk-go-v2/service/iam v1.50.2
+	github.com/aws/aws-sdk-go-v2/service/iam v1.51.0
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.81.3
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.67.2
 	github.com/aws/aws-sdk-go-v2/service/sts v1.40.2

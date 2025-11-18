@@ -20,7 +20,7 @@ func GetDistributionIDByHostname(ctx context.Context, client *cloudfront.Client,
 	for paginator.HasMorePages() {
 
 		page, err := paginator.NextPage(ctx)
-		
+
 		if err != nil {
 			return "", fmt.Errorf("cloudfront ListDistributions: %w", err)
 		}
