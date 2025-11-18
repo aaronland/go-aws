@@ -288,6 +288,25 @@ func (PolicyOwnerEntityType) Values() []PolicyOwnerEntityType {
 	}
 }
 
+type PolicyParameterTypeEnum string
+
+// Enum values for PolicyParameterTypeEnum
+const (
+	PolicyParameterTypeEnumString     PolicyParameterTypeEnum = "string"
+	PolicyParameterTypeEnumStringList PolicyParameterTypeEnum = "stringList"
+)
+
+// Values returns all known values for PolicyParameterTypeEnum. Note that this can
+// be expanded in the future, and so it is only as up to date as the client.
+//
+// The ordering of this slice is not guaranteed to be stable across updates.
+func (PolicyParameterTypeEnum) Values() []PolicyParameterTypeEnum {
+	return []PolicyParameterTypeEnum{
+		"string",
+		"stringList",
+	}
+}
+
 type PolicyScopeType string
 
 // Enum values for PolicyScopeType
@@ -489,6 +508,13 @@ const (
 	SummaryKeyTypePolicyVersionsInUseQuota          SummaryKeyType = "PolicyVersionsInUseQuota"
 	SummaryKeyTypeVersionsPerPolicyQuota            SummaryKeyType = "VersionsPerPolicyQuota"
 	SummaryKeyTypeGlobalEndpointTokenVersion        SummaryKeyType = "GlobalEndpointTokenVersion"
+	SummaryKeyTypeAssumeRolePolicySizeQuota         SummaryKeyType = "AssumeRolePolicySizeQuota"
+	SummaryKeyTypeInstanceProfiles                  SummaryKeyType = "InstanceProfiles"
+	SummaryKeyTypeInstanceProfilesQuota             SummaryKeyType = "InstanceProfilesQuota"
+	SummaryKeyTypeProviders                         SummaryKeyType = "Providers"
+	SummaryKeyTypeRolePolicySizeQuota               SummaryKeyType = "RolePolicySizeQuota"
+	SummaryKeyTypeRoles                             SummaryKeyType = "Roles"
+	SummaryKeyTypeRolesQuota                        SummaryKeyType = "RolesQuota"
 )
 
 // Values returns all known values for SummaryKeyType. Note that this can be
@@ -524,5 +550,12 @@ func (SummaryKeyType) Values() []SummaryKeyType {
 		"PolicyVersionsInUseQuota",
 		"VersionsPerPolicyQuota",
 		"GlobalEndpointTokenVersion",
+		"AssumeRolePolicySizeQuota",
+		"InstanceProfiles",
+		"InstanceProfilesQuota",
+		"Providers",
+		"RolePolicySizeQuota",
+		"Roles",
+		"RolesQuota",
 	}
 }

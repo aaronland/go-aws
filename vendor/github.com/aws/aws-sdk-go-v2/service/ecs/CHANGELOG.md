@@ -1,3 +1,44 @@
+# v1.67.4 (2025-11-12)
+
+* **Bug Fix**: Further reduce allocation overhead when the metrics system isn't in-use.
+* **Bug Fix**: Reduce allocation overhead when the client doesn't have any HTTP interceptors configured.
+* **Bug Fix**: Remove blank trace spans towards the beginning of the request that added no additional information. This conveys a slight reduction in overall allocations.
+
+# v1.67.3 (2025-11-11)
+
+* **Bug Fix**: Return validation error if input region is not a valid host label.
+
+# v1.67.2 (2025-11-04)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+* **Dependency Update**: Upgrade to smithy-go v1.23.2 which should convey some passive reduction of overall allocations, especially when not using the metrics system.
+
+# v1.67.1 (2025-11-03)
+
+* **Documentation**: Documentation-only update for LINEAR and CANARY deployment strategies.
+
+# v1.67.0 (2025-10-30)
+
+* **Feature**: Amazon ECS Service Connect now supports Envoy access logs, providing deeper observability into request-level traffic patterns and service interactions.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.66.0 (2025-10-28)
+
+* **Feature**: Amazon ECS supports native linear and canary service deployments, allowing you to shift traffic in increments for more control.
+
+# v1.65.4 (2025-10-23)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.65.3 (2025-10-22)
+
+* No change notes available for this release.
+
+# v1.65.2 (2025-10-16)
+
+* **Dependency Update**: Bump minimum Go version to 1.23.
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.65.1 (2025-10-01)
 
 * **Documentation**: This is a documentation only Amazon ECS release that adds additional information for health checks.

@@ -229,7 +229,8 @@ type RegisterTaskDefinitionInput struct {
 	// If task is specified, all containers within the specified task share the same
 	// process namespace.
 	//
-	// If no value is specified, the default is a private namespace for each container.
+	// If no value is specified, the The default is a private namespace for each
+	// container.
 	//
 	// If the host PID mode is used, there's a heightened risk of undesired process
 	// namespace exposure.
@@ -264,8 +265,7 @@ type RegisterTaskDefinitionInput struct {
 	// from the response.
 	RequiresCompatibilities []types.Compatibility
 
-	// The operating system that your tasks definitions run on. A platform family is
-	// specified only for tasks using the Fargate launch type.
+	// The operating system that your tasks definitions run on.
 	RuntimePlatform *types.RuntimePlatform
 
 	// The metadata that you apply to the task definition to help you categorize and
@@ -419,40 +419,7 @@ func (c *Client) addOperationRegisterTaskDefinitionMiddlewares(stack *middleware
 	if err = addInterceptAttempt(stack, options); err != nil {
 		return err
 	}
-	if err = addInterceptExecution(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeSerialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterSerialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeSigning(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterSigning(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptTransmit(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeDeserialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterDeserialization(stack, options); err != nil {
-		return err
-	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil

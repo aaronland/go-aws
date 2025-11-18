@@ -25,6 +25,7 @@ cli-auth:
 
 cli-cloudfront:
 	go build -mod vendor -o bin/cloudfront-invalidate cmd/cloudfront-invalidate/main.go
+	go build -mod vendor -o bin/cloudfront-distribution-id cmd/cloudfront-distribution-id/main.go
 
 cli-cloudwatch:
 	go build -mod $(GOMOD) -ldflags="$(LDFLAGS)" -o bin/cloudwatch-log-groups cmd/cloudwatch-log-groups/main.go
