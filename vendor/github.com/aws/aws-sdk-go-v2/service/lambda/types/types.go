@@ -162,7 +162,8 @@ type CodeSigningPolicies struct {
 	// Code signing configuration policy for deployment validation failure. If you set
 	// the policy to Enforce , Lambda blocks the deployment request if signature
 	// validation checks fail. If you set the policy to Warn , Lambda allows the
-	// deployment and creates a CloudWatch log.
+	// deployment and issues a new Amazon CloudWatch metric ( SignatureValidationErrors
+	// ) and also stores the warning in the CloudTrail log.
 	//
 	// Default value: Warn
 	UntrustedArtifactOnDeployment CodeSigningPolicy
@@ -1205,10 +1206,16 @@ type OnFailure struct {
 	// Amazon SQS queue, Amazon S3 bucket, Lambda function, or Amazon EventBridge event
 	// bus as the destination.
 	//
+	// Amazon SNS destinations have a message size limit of 256 KB. If the combined
+	// size of the function request and response payload exceeds the limit, Lambda will
+	// drop the payload when sending OnFailure event to the destination. For details
+	// on this behavior, refer to [Retaining records of asynchronous invocations].
+	//
 	// To retain records of failed invocations from [Kinesis], [DynamoDB], [self-managed Kafka] or [Amazon MSK], you can configure an
 	// Amazon SNS topic, Amazon SQS queue, or Amazon S3 bucket as the destination.
 	//
 	// [Amazon MSK]: https://docs.aws.amazon.com/lambda/latest/dg/with-msk.html#services-msk-onfailure-destination
+	// [Retaining records of asynchronous invocations]: https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html
 	// [Kinesis]: https://docs.aws.amazon.com/lambda/latest/dg/with-kinesis.html
 	// [asynchronous invocations]: https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#invocation-async-destinations
 	// [DynamoDB]: https://docs.aws.amazon.com/lambda/latest/dg/with-ddb.html
@@ -1230,6 +1237,13 @@ type OnFailure struct {
 type OnSuccess struct {
 
 	// The Amazon Resource Name (ARN) of the destination resource.
+	//
+	// Amazon SNS destinations have a message size limit of 256 KB. If the combined
+	// size of the function request and response payload exceeds the limit, Lambda will
+	// drop the payload when sending OnFailure event to the destination. For details
+	// on this behavior, refer to [Retaining records of asynchronous invocations].
+	//
+	// [Retaining records of asynchronous invocations]: https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html
 	Destination *string
 
 	noSmithyDocumentSerde

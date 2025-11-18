@@ -42,13 +42,13 @@ func main() {
 	cl, err := ec2.NewClient(ctx, aws_uri)
 
 	if err != nil {
-		log.Fatalf("Failed to create EC2 client, %w", err)
+		log.Fatalf("Failed to create EC2 client, %v", err)
 	}
 
 	addrs, err := ec2.GetPublicIPsWithTag(ctx, cl, key, value)
 
 	if err != nil {
-		log.Fatalf("Failed to derive public IPs for tag, %w", err)
+		log.Fatalf("Failed to derive public IPs for tag, %v", err)
 	}
 
 	for _, a := range addrs {
