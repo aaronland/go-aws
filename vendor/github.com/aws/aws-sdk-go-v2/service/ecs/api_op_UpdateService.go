@@ -157,8 +157,8 @@ type UpdateServiceInput struct {
 	// The default behavior of AvailabilityZoneRebalancing differs between create and
 	// update requests:
 	//
-	//   - For create service requests, when when no value is specified for
-	//   AvailabilityZoneRebalancing , Amazon ECS defaults the value to to ENABLED .
+	//   - For create service requests, when no value is specified for
+	//   AvailabilityZoneRebalancing , Amazon ECS defaults the value to ENABLED .
 	//
 	//   - For update service requests, when no value is specified for
 	//   AvailabilityZoneRebalancing , Amazon ECS defaults to the existing service’s
@@ -172,6 +172,9 @@ type UpdateServiceInput struct {
 
 	// The details of a capacity provider strategy. You can set a capacity provider
 	// when you create a cluster, run a task, or update a service.
+	//
+	// If you want to use Amazon ECS Managed Instances, you must use the
+	// capacityProviderStrategy request parameter.
 	//
 	// When you use Fargate, the capacity providers are FARGATE or FARGATE_SPOT .
 	//
@@ -264,6 +267,9 @@ type UpdateServiceInput struct {
 	// years). During that time, the Amazon ECS service scheduler ignores health check
 	// status. This grace period can prevent the service scheduler from marking tasks
 	// as unhealthy and stopping them before they have time to come up.
+	//
+	// If your service has more running tasks than desired, unhealthy tasks in the
+	// grace period might be stopped to reach the desired count.
 	//
 	// This parameter doesn't trigger a new service deployment.
 	HealthCheckGracePeriodSeconds *int32
@@ -518,40 +524,7 @@ func (c *Client) addOperationUpdateServiceMiddlewares(stack *middleware.Stack, o
 	if err = addInterceptAttempt(stack, options); err != nil {
 		return err
 	}
-	if err = addInterceptExecution(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeSerialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterSerialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeSigning(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterSigning(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptTransmit(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeDeserialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterDeserialization(stack, options); err != nil {
-		return err
-	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil

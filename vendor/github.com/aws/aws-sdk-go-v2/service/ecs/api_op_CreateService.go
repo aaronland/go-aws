@@ -127,6 +127,45 @@ import (
 //   - Load balancer requirement: When your service uses Application Load
 //     Balancer, Network Load Balancer, or Service Connect
 //
+//   - LINEAR : A linear deployment strategy ( LINEAR ) gradually shifts traffic
+//     from the current production environment to a new environment in equal percentage
+//     increments. With Amazon ECS linear deployments, you can control the pace of
+//     traffic shifting and validate new service revisions with increasing amounts of
+//     production traffic.
+//
+// Linear deployments are best suited for the following scenarios:
+//
+//   - Gradual validation: When you want to gradually validate your new service
+//     version with increasing traffic
+//
+//   - Performance monitoring: When you need time to monitor metrics and
+//     performance during the deployment
+//
+//   - Risk minimization: When you want to minimize risk by exposing the new
+//     version to production traffic incrementally
+//
+//   - Load balancer requirement: When your service uses Application Load Balancer
+//     or Service Connect
+//
+//   - CANARY : A canary deployment strategy ( CANARY ) shifts a small percentage
+//     of traffic to the new service revision first, then shifts the remaining traffic
+//     all at once after a specified time period. This allows you to test the new
+//     version with a subset of users before full deployment.
+//
+// Canary deployments are best suited for the following scenarios:
+//
+//   - Feature testing: When you want to test new features with a small subset of
+//     users before full rollout
+//
+//   - Production validation: When you need to validate performance and
+//     functionality with real production traffic
+//
+//   - Blast radius control: When you want to minimize blast radius if issues are
+//     discovered in the new version
+//
+//   - Load balancer requirement: When your service uses Application Load Balancer
+//     or Service Connect
+//
 //   - External
 //
 // Use a third-party deployment controller.
@@ -194,8 +233,8 @@ type CreateServiceInput struct {
 	// The default behavior of AvailabilityZoneRebalancing differs between create and
 	// update requests:
 	//
-	//   - For create service requests, when when no value is specified for
-	//   AvailabilityZoneRebalancing , Amazon ECS defaults the value to to ENABLED .
+	//   - For create service requests, when no value is specified for
+	//   AvailabilityZoneRebalancing , Amazon ECS defaults the value to ENABLED .
 	//
 	//   - For update service requests, when no value is specified for
 	//   AvailabilityZoneRebalancing , Amazon ECS defaults to the existing service’s
@@ -206,6 +245,10 @@ type CreateServiceInput struct {
 	AvailabilityZoneRebalancing types.AvailabilityZoneRebalancing
 
 	// The capacity provider strategy to use for the service.
+	//
+	// If you want to use Amazon ECS Managed Instances, you must use the
+	// capacityProviderStrategy request parameter and omit the launchType request
+	// parameter.
 	//
 	// If a capacityProviderStrategy is specified, the launchType parameter must be
 	// omitted. If no capacityProviderStrategy or launchType is specified, the
@@ -254,15 +297,22 @@ type CreateServiceInput struct {
 	// in the service tasks.
 	EnableExecuteCommand bool
 
-	// The period of time, in seconds, that the Amazon Amazon ECS service scheduler
-	// ignores unhealthy Elastic Load Balancing, VPC Lattice, and container health
-	// checks after a task has first started. If you do not specify a health check
-	// grace period value, the default value of 0 is used. If you do not use any of the
-	// health checks, then healthCheckGracePeriodSeconds is unused.
+	// The period of time, in seconds, that the Amazon ECS service scheduler ignores
+	// unhealthy Elastic Load Balancing, VPC Lattice, and container health checks after
+	// a task has first started. If you do not specify a health check grace period
+	// value, the default value of 0 is used. If you do not use any of the health
+	// checks, then healthCheckGracePeriodSeconds is unused.
+	//
+	// If your service has more running tasks than desired, unhealthy tasks in the
+	// grace period might be stopped to reach the desired count.
 	HealthCheckGracePeriodSeconds *int32
 
 	// The infrastructure that you run your service on. For more information, see [Amazon ECS launch types] in
 	// the Amazon Elastic Container Service Developer Guide.
+	//
+	// If you want to use Amazon ECS Managed Instances, you must use the
+	// capacityProviderStrategy request parameter and omit the launchType request
+	// parameter.
 	//
 	// The FARGATE launch type runs your tasks on Fargate On-Demand infrastructure.
 	//
@@ -610,40 +660,7 @@ func (c *Client) addOperationCreateServiceMiddlewares(stack *middleware.Stack, o
 	if err = addInterceptAttempt(stack, options); err != nil {
 		return err
 	}
-	if err = addInterceptExecution(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeSerialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterSerialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeSigning(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterSigning(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptTransmit(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeDeserialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterDeserialization(stack, options); err != nil {
-		return err
-	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil

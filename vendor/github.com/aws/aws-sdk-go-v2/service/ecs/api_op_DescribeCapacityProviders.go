@@ -33,6 +33,11 @@ type DescribeCapacityProvidersInput struct {
 	// providers. Up to 100 capacity providers can be described in an action.
 	CapacityProviders []string
 
+	// The name of the cluster to describe capacity providers for. When specified,
+	// only capacity providers associated with this cluster are returned, including
+	// Amazon ECS Managed Instances capacity providers.
+	Cluster *string
+
 	// Specifies whether or not you want to see the resource tags for the capacity
 	// provider. If TAGS is specified, the tags are included in the response. If this
 	// field is omitted, tags aren't included in the response.
@@ -171,40 +176,7 @@ func (c *Client) addOperationDescribeCapacityProvidersMiddlewares(stack *middlew
 	if err = addInterceptAttempt(stack, options); err != nil {
 		return err
 	}
-	if err = addInterceptExecution(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeSerialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterSerialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeSigning(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterSigning(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptTransmit(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptBeforeDeserialization(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAfterDeserialization(stack, options); err != nil {
-		return err
-	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
