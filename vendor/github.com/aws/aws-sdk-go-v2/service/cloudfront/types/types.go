@@ -203,6 +203,10 @@ type AnycastIpList struct {
 	// The IP address type for the Anycast static IP list.
 	IpAddressType IpAddressType
 
+	// The IPAM configuration for the Anycast static IP list, that contains the
+	// quantity and list of IPAM CIDR configurations.
+	IpamConfig *IpamConfig
+
 	noSmithyDocumentSerde
 }
 
@@ -286,7 +290,54 @@ type AnycastIpListSummary struct {
 	// The IP address type for the Anycast static IP list.
 	IpAddressType IpAddressType
 
+	// The IPAM configuration for the Anycast static IP list, that contains the
+	// quantity and list of IPAM CIDR configurations.
+	IpamConfig *IpamConfig
+
 	noSmithyDocumentSerde
+}
+
+// The CA certificates bundle location in Amazon S3.
+type CaCertificatesBundleS3Location struct {
+
+	// The S3 bucket.
+	//
+	// This member is required.
+	Bucket *string
+
+	// The location's key.
+	//
+	// This member is required.
+	Key *string
+
+	// The location's Region.
+	//
+	// This member is required.
+	Region *string
+
+	// The location's version.
+	Version *string
+
+	noSmithyDocumentSerde
+}
+
+// A CA certificates bundle source.
+//
+// The following types satisfy this interface:
+//
+//	CaCertificatesBundleSourceMemberCaCertificatesBundleS3Location
+type CaCertificatesBundleSource interface {
+	isCaCertificatesBundleSource()
+}
+
+// The CA certificates bundle location in Amazon S3.
+type CaCertificatesBundleSourceMemberCaCertificatesBundleS3Location struct {
+	Value CaCertificatesBundleS3Location
+
+	noSmithyDocumentSerde
+}
+
+func (*CaCertificatesBundleSourceMemberCaCertificatesBundleS3Location) isCaCertificatesBundleSource() {
 }
 
 // A complex type that describes how CloudFront processes requests.
@@ -1072,6 +1123,84 @@ type ConflictingAliasesList struct {
 
 	// The number of conflicting aliases returned in the response.
 	Quantity *int32
+
+	noSmithyDocumentSerde
+}
+
+// A connection function association.
+type ConnectionFunctionAssociation struct {
+
+	// The association's ID.
+	//
+	// This member is required.
+	Id *string
+
+	noSmithyDocumentSerde
+}
+
+// A connection function summary.
+type ConnectionFunctionSummary struct {
+
+	// The connection function Amazon Resource Name (ARN).
+	//
+	// This member is required.
+	ConnectionFunctionArn *string
+
+	// Contains configuration information about a CloudFront function.
+	//
+	// This member is required.
+	ConnectionFunctionConfig *FunctionConfig
+
+	// The connection function created time.
+	//
+	// This member is required.
+	CreatedTime *time.Time
+
+	// The connection function ID.
+	//
+	// This member is required.
+	Id *string
+
+	// The connection function last modified time.
+	//
+	// This member is required.
+	LastModifiedTime *time.Time
+
+	// The connection function name.
+	//
+	// This member is required.
+	Name *string
+
+	// The connection function stage.
+	//
+	// This member is required.
+	Stage FunctionStage
+
+	// The connection function status.
+	//
+	// This member is required.
+	Status *string
+
+	noSmithyDocumentSerde
+}
+
+// A connection function test result.
+type ConnectionFunctionTestResult struct {
+
+	// The connection function compute utilization.
+	ComputeUtilization *string
+
+	// The connection function error message.
+	ConnectionFunctionErrorMessage *string
+
+	// The connection function execution logs.
+	ConnectionFunctionExecutionLogs []string
+
+	// The connection function output.
+	ConnectionFunctionOutput *string
+
+	// The connection function summary.
+	ConnectionFunctionSummary *ConnectionFunctionSummary
 
 	noSmithyDocumentSerde
 }
@@ -2038,6 +2167,9 @@ type DistributionConfig struct {
 	// A complex type that contains zero or more CacheBehavior elements.
 	CacheBehaviors *CacheBehaviors
 
+	// The distribution's connection function association.
+	ConnectionFunctionAssociation *ConnectionFunctionAssociation
+
 	// This field specifies whether the connection mode is through a standard
 	// distribution (direct) or a multi-tenant distribution with distribution tenants
 	// (tenant-only).
@@ -2213,6 +2345,9 @@ type DistributionConfig struct {
 	// A complex type that determines the distribution's SSL/TLS configuration for
 	// communicating with viewers.
 	ViewerCertificate *ViewerCertificate
+
+	// The distribution's viewer mTLS configuration.
+	ViewerMtlsConfig *ViewerMtlsConfig
 
 	// Multi-tenant distributions only support WAF V2 web ACLs.
 	//
@@ -2531,6 +2666,9 @@ type DistributionSummary struct {
 	// ID of the Anycast static IP list that is associated with the distribution.
 	AnycastIpListId *string
 
+	// The distribution's connection function association.
+	ConnectionFunctionAssociation *ConnectionFunctionAssociation
+
 	// This field specifies whether the connection mode is through a standard
 	// distribution (direct) or a multi-tenant distribution with distribution tenants
 	// (tenant-only).
@@ -2542,6 +2680,9 @@ type DistributionSummary struct {
 	// A complex type that contains information about origin groups for this
 	// distribution.
 	OriginGroups *OriginGroups
+
+	// The distribution's viewer mTLS configuration.
+	ViewerMtlsConfig *ViewerMtlsConfig
 
 	noSmithyDocumentSerde
 }
@@ -3546,6 +3687,49 @@ type InvalidationSummary struct {
 	//
 	// This member is required.
 	Status *string
+
+	noSmithyDocumentSerde
+}
+
+// Configuration for an IPAM CIDR that defines a specific IP address range, IPAM
+// pool, and associated Anycast IP address.
+type IpamCidrConfig struct {
+
+	// The CIDR that specifies the IP address range for this IPAM configuration.
+	//
+	// This member is required.
+	Cidr *string
+
+	// The Amazon Resource Name (ARN) of the IPAM pool that the CIDR block is assigned
+	// to.
+	//
+	// This member is required.
+	IpamPoolArn *string
+
+	// The specified Anycast IP address allocated from the IPAM pool for this CIDR
+	// configuration.
+	AnycastIp *string
+
+	// The current status of the IPAM CIDR configuration.
+	Status IpamCidrStatus
+
+	noSmithyDocumentSerde
+}
+
+// The configuration IPAM settings that includes the quantity of CIDR
+// configurations and the list of IPAM CIDR configurations.
+type IpamConfig struct {
+
+	// A list of IPAM CIDR configurations that define the IP address ranges, IPAM
+	// pools, and associated Anycast IP addresses.
+	//
+	// This member is required.
+	IpamCidrConfigs []IpamCidrConfig
+
+	// The number of IPAM CIDR configurations in the IpamCidrConfigs list.
+	//
+	// This member is required.
+	Quantity *int32
 
 	noSmithyDocumentSerde
 }
@@ -6396,6 +6580,94 @@ type TrustedSigners struct {
 	noSmithyDocumentSerde
 }
 
+// A trust store.
+type TrustStore struct {
+
+	// The trust store's Amazon Resource Name (ARN).
+	Arn *string
+
+	// The trust store's ID.
+	Id *string
+
+	// The trust store's last modified time.
+	LastModifiedTime *time.Time
+
+	// The trust store's name.
+	Name *string
+
+	// The trust store's number of CA certificates.
+	NumberOfCaCertificates *int32
+
+	// The trust store's reason.
+	Reason *string
+
+	// The trust store's status.
+	Status TrustStoreStatus
+
+	noSmithyDocumentSerde
+}
+
+// A trust store configuration.
+type TrustStoreConfig struct {
+
+	// The trust store ID.
+	//
+	// This member is required.
+	TrustStoreId *string
+
+	// The configuration to use to advertise trust store CA names.
+	AdvertiseTrustStoreCaNames *bool
+
+	// The configuration to use to ignore certificate expiration.
+	IgnoreCertificateExpiry *bool
+
+	noSmithyDocumentSerde
+}
+
+// A trust store summary.
+type TrustStoreSummary struct {
+
+	// The trust store's Amazon Resource Name (ARN).
+	//
+	// This member is required.
+	Arn *string
+
+	// The version identifier for the current version of the trust store.
+	//
+	// This member is required.
+	ETag *string
+
+	// The trust store's ID.
+	//
+	// This member is required.
+	Id *string
+
+	// The trust store's last modified time.
+	//
+	// This member is required.
+	LastModifiedTime *time.Time
+
+	// The trust store's name.
+	//
+	// This member is required.
+	Name *string
+
+	// The trust store's number of CA certificates.
+	//
+	// This member is required.
+	NumberOfCaCertificates *int32
+
+	// The trust store's status.
+	//
+	// This member is required.
+	Status TrustStoreStatus
+
+	// The trust store's reason.
+	Reason *string
+
+	noSmithyDocumentSerde
+}
+
 // Contains details about the validation token.
 type ValidationTokenDetail struct {
 
@@ -6570,6 +6842,18 @@ type ViewerCertificate struct {
 	// [Amazon Web ServicesSupport Center]: https://console.aws.amazon.com/support/home
 	// [server name indication (SNI)]: https://en.wikipedia.org/wiki/Server_Name_Indication
 	SSLSupportMethod SSLSupportMethod
+
+	noSmithyDocumentSerde
+}
+
+// A viewer mTLS configuration.
+type ViewerMtlsConfig struct {
+
+	// The viewer mTLS mode.
+	Mode ViewerMtlsMode
+
+	// The trust store configuration associated with the viewer mTLS configuration.
+	TrustStoreConfig *TrustStoreConfig
 
 	noSmithyDocumentSerde
 }
@@ -6779,3 +7063,14 @@ type WebAclCustomization struct {
 }
 
 type noSmithyDocumentSerde = smithydocument.NoSerde
+
+// UnknownUnionMember is returned when a union member is returned over the wire,
+// but has an unknown tag.
+type UnknownUnionMember struct {
+	Tag   string
+	Value []byte
+
+	noSmithyDocumentSerde
+}
+
+func (*UnknownUnionMember) isCaCertificatesBundleSource() {}

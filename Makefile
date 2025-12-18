@@ -41,6 +41,7 @@ cli-ecs:
 
 cli-ec2:
 	go build -mod $(GOMOD) -ldflags="$(LDFLAGS)" -o bin/ec2-public-ip cmd/ec2-public-ip/main.go
+	go build -mod $(GOMOD) -ldflags="$(LDFLAGS)" -o bin/ec2-reboot-instances cmd/ec2-reboot-instances/main.go
 
 cli-lambda:
 	go build -mod $(GOMOD) -ldflags "$(LDFLAGS)" -o bin/lambda-invoke cmd/lambda-invoke/main.go

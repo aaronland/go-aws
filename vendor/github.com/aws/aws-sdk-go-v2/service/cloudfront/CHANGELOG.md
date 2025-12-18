@@ -1,3 +1,28 @@
+# v1.58.3 (2025-12-08)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.58.2 (2025-12-02)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+* **Dependency Update**: Upgrade to smithy-go v1.24.0. Notably this version of the library reduces the allocation footprint of the middleware system. We observe a ~10% reduction in allocations per SDK call with this change.
+
+# v1.58.1 (2025-11-25)
+
+* **Bug Fix**: Add error check for endpoint param binding during auth scheme resolution to fix panic reported in #3234
+
+# v1.58.0 (2025-11-24)
+
+* **Feature**: Add TrustStore, ConnectionFunction APIs to CloudFront SDK
+
+# v1.57.0 (2025-11-20)
+
+* **Feature**: This release adds support for bring your own IP (BYOIP) to CloudFront's CreateAnycastIpList API through an optional IpamCidrConfigs field.
+
+# v1.56.3 (2025-11-19.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.56.2 (2025-11-12)
 
 * **Bug Fix**: Further reduce allocation overhead when the metrics system isn't in-use.

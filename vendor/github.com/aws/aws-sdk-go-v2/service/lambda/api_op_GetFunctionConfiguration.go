@@ -68,17 +68,28 @@ type GetFunctionConfigurationOutput struct {
 	// x86_64 .
 	Architectures []types.Architecture
 
+	// Configuration for the capacity provider that manages compute resources for
+	// Lambda functions.
+	CapacityProviderConfig *types.CapacityProviderConfig
+
 	// The SHA256 hash of the function's deployment package.
 	CodeSha256 *string
 
 	// The size of the function's deployment package, in bytes.
 	CodeSize int64
 
+	// The SHA256 hash of the function configuration.
+	ConfigSha256 *string
+
 	// The function's dead letter queue.
 	DeadLetterConfig *types.DeadLetterConfig
 
 	// The function's description.
 	Description *string
+
+	// The function's durable execution configuration settings, if the function is
+	// configured for durability.
+	DurableConfig *types.DurableConfig
 
 	// The function's [environment variables]. Omitted from CloudTrail logs.
 	//
@@ -214,6 +225,10 @@ type GetFunctionConfigurationOutput struct {
 	// The reason code for the function's current state. When the code is Creating ,
 	// you can't invoke or modify the function.
 	StateReasonCode types.StateReasonCode
+
+	// The function's tenant isolation configuration settings. Determines whether the
+	// Lambda function runs on a shared or dedicated infrastructure per unique tenant.
+	TenancyConfig *types.TenancyConfig
 
 	// The amount of time in seconds that Lambda allows a function to run before
 	// stopping it.
