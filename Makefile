@@ -1,6 +1,9 @@
 GOMOD=$(shell test -f "go.work" && echo "readonly" || echo "vendor")
 LDFLAGS=-s -w
 
+dl:
+	@make dynamodb-local
+
 dynamodb-local:
 	docker run --platform=linux/amd64 --rm -it -p 8000:8000 amazon/dynamodb-local
 
