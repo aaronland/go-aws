@@ -76,6 +76,7 @@ func CredentialsStringPatterns() []string {
 //	`anon:` Use anonymous credentials
 //	`env:` Use credentials derived from "AWS_" environment variables
 //	`iam:` Use IAM credentials
+//	`iam:{REGION}:{ARN}` Use IAM credentials after assuming the role defined by {ARN} (in {REGION})
 //	`{PROFILE}` Use a specific profile defined by {PROFILE} from the default credentials file
 //	`{PATH}:{PROFILE}` Use a specific profile definied by {PROFILE} from the credentials file defined by {PATH}
 //	`static:{KEY}:{SECRET}:{TOKEN}` Read credentials as positional elements in a string
@@ -114,6 +115,7 @@ func NewConfig(ctx context.Context, uri string) (aws.Config, error) {
 //	`anon:` Use anonymous credentials
 //	`env:` Use credentials derived from "AWS_" environment variables
 //	`iam:` Use IAM credentials
+//	`iam:{REGION}:{ARN}` Use IAM credentials after assuming the role defined by {ARN} (in {REGION})
 //	`{PROFILE}` Use a specific profile defined by {PROFILE} from the default credentials file
 //	`{PATH}:{PROFILE}` Use a specific profile definied by {PROFILE} from the credentials file defined by {PATH}
 //	`static:{KEY}:{SECRET}:{TOKEN}` Read credentials as positional elements in a string
@@ -170,7 +172,7 @@ func NewConfigWithCredentialsString(ctx context.Context, str_creds string) (aws.
 		cfg.Region = region
 
 		now := time.Now()
-		session := fmt.Sprintf("arn-%d", now.Unix())
+		session := fmt.Sprintf("assume-%s-%d", arn, now.Unix())
 
 		sts_cl := sts.NewFromConfig(cfg)
 
