@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/aaronland/go-aws/v3/auth"
-	"gopkg.in/ini.v1"	
+	"gopkg.in/ini.v1"
 )
 
 func main() {

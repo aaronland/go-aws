@@ -172,7 +172,7 @@ func NewConfigWithCredentialsString(ctx context.Context, str_creds string) (aws.
 		cfg.Region = region
 
 		now := time.Now()
-		session := fmt.Sprintf("assume-%s-%d", arn, now.Unix())
+		session := fmt.Sprintf("assume-%d", now.Unix())
 
 		sts_cl := sts.NewFromConfig(cfg)
 
