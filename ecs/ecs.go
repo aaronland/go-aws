@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/aaronland/go-aws/v3/auth"
@@ -162,12 +163,8 @@ func WaitForTasksToComplete(ctx context.Context, ecs_client *aws_ecs.Client, opt
 
 			for _, stopped_t := range list_rsp.TaskArns {
 
-				for _, t := range opts.TaskArns {
-
-					if stopped_t == t {
-						remaining -= 1
-						break
-					}
+				if slices.Contains(opts.TaskArns, stopped_t) {
+					remaining -= 1
 				}
 			}
 
