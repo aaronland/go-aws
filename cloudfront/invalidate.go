@@ -11,6 +11,36 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
 )
 
+func IsInvalidationRunning(ctx context.Context, client *aws_cloudfront.Client, distribution_id string) (bool, error) {
+
+	if distribution_id == "" {
+		return false, fmt.Errorf("Missing distribution ID")
+	}
+
+	paginator := aws_cloudfront.NewListInvalidationsPaginator(client, &aws_cloudfront.ListInvalidationsInput{
+		DistributionId: &distribution_id,
+	})
+
+	for paginator.HasMorePages() {
+
+		page, err := paginator.NextPage(ctx)
+
+		if err != nil {
+			return false, err
+		}
+
+		for _, inv := range page.InvalidationList.Items {
+
+			// slog.Info("I", "id", *inv.Id, "status", *inv.Status)
+			if *inv.Status == "InProgress" {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
+}
+
 // InvalidatePaths will issue a "CreateInvalidation" request for 'uris' in 'distribution_id'. It will return the
 // invalidation ID and caller reference associated with the request.
 func InvalidatePaths(ctx context.Context, cl *aws_cloudfront.Client, distribution_id string, uris ...string) (string, string, error) {

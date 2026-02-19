@@ -1,3 +1,7 @@
+# v1.60.0 (2026-02-02)
+
+* **Feature**: Add OriginMTLS support to CloudFront Distribution APIs
+
 # v1.59.0 (2026-01-09)
 
 * **Feature**: Added EntityLimitExceeded exception handling to the following API operations AssociateDistributionWebACL, AssociateDistributionTenantWebACL, UpdateDistributionWithStagingConfig
