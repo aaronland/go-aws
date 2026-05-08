@@ -1721,6 +1721,19 @@ func awsRestxml_serializeOpDocumentCreateFunctionInput(v *CreateFunctionInput, v
 		el := value.MemberElement(root)
 		el.String(*v.Name)
 	}
+	if v.Tags != nil {
+		rootAttr := []smithyxml.Attr{}
+		root := smithyxml.StartElement{
+			Name: smithyxml.Name{
+				Local: "Tags",
+			},
+			Attr: rootAttr,
+		}
+		el := value.MemberElement(root)
+		if err := awsRestxml_serializeDocumentTags(v.Tags, el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -2108,6 +2121,19 @@ func awsRestxml_serializeOpDocumentCreateKeyValueStoreInput(v *CreateKeyValueSto
 		}
 		el := value.MemberElement(root)
 		el.String(*v.Name)
+	}
+	if v.Tags != nil {
+		rootAttr := []smithyxml.Attr{}
+		root := smithyxml.StartElement{
+			Name: smithyxml.Name{
+				Local: "Tags",
+			},
+			Attr: rootAttr,
+		}
+		el := value.MemberElement(root)
+		if err := awsRestxml_serializeDocumentTags(v.Tags, el); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -12031,6 +12057,19 @@ func awsRestxml_serializeOpDocumentUpdateAnycastIpListInput(v *UpdateAnycastIpLi
 		el := value.MemberElement(root)
 		el.String(string(v.IpAddressType))
 	}
+	if v.IpamCidrConfigs != nil {
+		rootAttr := []smithyxml.Attr{}
+		root := smithyxml.StartElement{
+			Name: smithyxml.Name{
+				Local: "IpamCidrConfigs",
+			},
+			Attr: rootAttr,
+		}
+		el := value.MemberElement(root)
+		if err := awsRestxml_serializeDocumentIpamCidrConfigList(v.IpamCidrConfigs, el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -15285,6 +15324,22 @@ func awsRestxml_serializeDocumentCachePolicyQueryStringsConfig(v *types.CachePol
 	return nil
 }
 
+func awsRestxml_serializeDocumentCacheTagConfig(v *types.CacheTagConfig, value smithyxml.Value) error {
+	defer value.Close()
+	if v.HeaderName != nil {
+		rootAttr := []smithyxml.Attr{}
+		root := smithyxml.StartElement{
+			Name: smithyxml.Name{
+				Local: "HeaderName",
+			},
+			Attr: rootAttr,
+		}
+		el := value.MemberElement(root)
+		el.String(*v.HeaderName)
+	}
+	return nil
+}
+
 func awsRestxml_serializeDocumentCertificate(v *types.Certificate, value smithyxml.Value) error {
 	defer value.Close()
 	if v.Arn != nil {
@@ -16201,6 +16256,19 @@ func awsRestxml_serializeDocumentDistributionConfig(v *types.DistributionConfig,
 		}
 		el := value.MemberElement(root)
 		if err := awsRestxml_serializeDocumentCacheBehaviors(v.CacheBehaviors, el); err != nil {
+			return err
+		}
+	}
+	if v.CacheTagConfig != nil {
+		rootAttr := []smithyxml.Attr{}
+		root := smithyxml.StartElement{
+			Name: smithyxml.Name{
+				Local: "CacheTagConfig",
+			},
+			Attr: rootAttr,
+		}
+		el := value.MemberElement(root)
+		if err := awsRestxml_serializeDocumentCacheTagConfig(v.CacheTagConfig, el); err != nil {
 			return err
 		}
 	}
