@@ -1,0 +1,65 @@
+#!/usr/bin/env sh
+
+set -euo pipefail
+
+# https://github.com/aaronland/go-aws/tree/main/cmd/aws-mfa-session
+# https://github.com/aaronland/go-aws/tree/main/cmd/ec2-public-ip
+
+REGION=${SSH_EC2_REGION:-}
+CREDENTIALS=${SSH_EC2_CREDENTIALS:-session}
+JHOST=
+
+usage() {
+    cat <<EOF >&2
+Usage: $0 [-r REGION] [-c CREDENTIALS] [-j JHOST] HOST
+
+  -r REGION       EC2 region (default: ${REGION})
+  -c CREDENTIALS  AWS credential profile (default: ${CREDENTIALS})
+  -j JHOST        SSH jump host (adds -J JHOST)
+  HOST           The EC2 tag value of the instance you want to SSH to
+EOF
+    exit 1
+}
+
+while getopts "r:c:j:" opt; do
+    case $opt in
+        r) REGION=$OPTARG ;;
+        c) CREDENTIALS=$OPTARG ;;
+        j) JHOST=$OPTARG ;;
+        *) usage ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ $# -ne 1 ]; then
+    usage
+fi
+
+HOST=$1
+
+PUBLIC_IP=$(command -v ec2-public-ip) || {
+    echo "ERROR: ec2-public-ip not found in PATH" >&2
+    exit 1
+}
+
+ADDRESS=$("${PUBLIC_IP}" -aws-uri "aws://?region=${REGION}&credentials=${CREDENTIALS}" -tag-value "${HOST}") || {
+    echo "ERROR: failed to resolve address for host tag '$HOST'" >&2
+    exit 1
+}
+
+if [ -z "$ADDRESS" ]; then
+    echo "ERROR: no address returned for host tag '$HOST'" >&2
+    exit 1
+fi
+
+LINECOUNT=$(printf '%s' "$ADDRESS" | grep -c .)
+
+if [ "$LINECOUNT" -ne 1 ]; then
+    echo "ERROR: resolved address contains $LINECOUNT lines; expected 1" >&2
+    exit 1
+fi
+
+ssh ${JHOST:+-J "$JHOST"} -o HostName="$ADDRESS" "$HOST" || {
+    echo "ERROR: ssh command failed" >&2
+    exit 1
+}
