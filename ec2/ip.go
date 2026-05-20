@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"strings"
+	"regexp"
 
 	aws_ec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
 )
@@ -12,6 +12,13 @@ import (
 // GetPublicIPsWithTags returns the public IP addresses for EC2 instances whose tag named 'key' contains the string 'value'.
 // Instances whose key=value tag match but don't have a public IP address are logged as a warning.
 func GetPublicIPsWithTag(ctx context.Context, cl *aws_ec2.Client, key string, value string) ([]string, error) {
+
+	re_str := fmt.Sprintf(`(^|\s)%s(\s|$)`, value)
+	re_value, err := regexp.Compile(re_str)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to compile regexp for value, %w", err)
+	}
 
 	addrs := make([]string, 0)
 
@@ -38,7 +45,7 @@ func GetPublicIPsWithTag(ctx context.Context, cl *aws_ec2.Client, key string, va
 					continue
 				}
 
-				if !strings.Contains(*t.Value, value) {
+				if !re_value.MatchString(*t.Value) {
 					continue
 				}
 
