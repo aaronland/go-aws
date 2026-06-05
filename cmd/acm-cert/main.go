@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"log"
+	"os"
 
 	"github.com/aaronland/go-aws/v3/acm"
 	"github.com/aaronland/go-string/random"
@@ -42,7 +44,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cert, key, err := acm.ExportCertificate(ctx, cl, arn, password)
+	cert, err := acm.ExportCertificate(ctx, cl, arn, password)
 
 	if err != nil {
 		log.Fatal(err)
@@ -50,17 +52,22 @@ func main() {
 
 	if remove_password {
 
-		key_nopass, err := acm.RemovePassword(key, password)
+		key_nopass, err := cert.RemovePassword(password)
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		key = key_nopass
+		cert.PrivateKey = key_nopass
 	}
 
-	log.Println(cert)
-	log.Println(key)
+	enc := json.NewEncoder(os.Stdout)
+	err = enc.Encode(cert)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func randomPassword() (string, error) {
