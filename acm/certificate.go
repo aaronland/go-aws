@@ -18,9 +18,9 @@ type Certificate struct {
 }
 
 func (c *Certificate) RemovePassword(password string) ([]byte, error) {
-	
+
 	block, _ := pem.Decode(c.PrivateKey)
-	
+
 	if block == nil {
 		return nil, fmt.Errorf("failed to parse PEM block")
 	}
@@ -29,9 +29,8 @@ func (c *Certificate) RemovePassword(password string) ([]byte, error) {
 		return nil, fmt.Errorf("PEM block is not an ENCRYPTED PRIVATE KEY: %s", block.Type)
 	}
 
-
 	key, err := pkcs8.ParsePKCS8PrivateKey(block.Bytes, []byte(password))
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt PKCS#8 key: %w", err)
 	}
