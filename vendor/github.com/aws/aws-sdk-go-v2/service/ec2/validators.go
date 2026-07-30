@@ -670,6 +670,26 @@ func (m *validateOpAttachClassicLinkVpc) HandleInitialize(ctx context.Context, i
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpAttachImageWatermark struct {
+}
+
+func (*validateOpAttachImageWatermark) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpAttachImageWatermark) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*AttachImageWatermarkInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpAttachImageWatermarkInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpAttachInternetGateway struct {
 }
 
@@ -2550,6 +2570,26 @@ func (m *validateOpCreateTransitGatewayPeeringAttachment) HandleInitialize(ctx c
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpCreateTransitGatewayPolicyTableEntry struct {
+}
+
+func (*validateOpCreateTransitGatewayPolicyTableEntry) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpCreateTransitGatewayPolicyTableEntry) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*CreateTransitGatewayPolicyTableEntryInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpCreateTransitGatewayPolicyTableEntryInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpCreateTransitGatewayPolicyTable struct {
 }
 
@@ -4270,6 +4310,26 @@ func (m *validateOpDeleteTransitGatewayPeeringAttachment) HandleInitialize(ctx c
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpDeleteTransitGatewayPolicyTableEntry struct {
+}
+
+func (*validateOpDeleteTransitGatewayPolicyTableEntry) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpDeleteTransitGatewayPolicyTableEntry) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*DeleteTransitGatewayPolicyTableEntryInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpDeleteTransitGatewayPolicyTableEntryInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpDeleteTransitGatewayPolicyTable struct {
 }
 
@@ -5345,6 +5405,26 @@ func (m *validateOpDetachClassicLinkVpc) HandleInitialize(ctx context.Context, i
 		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
 	}
 	if err := validateOpDetachClassicLinkVpcInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpDetachImageWatermark struct {
+}
+
+func (*validateOpDetachImageWatermark) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpDetachImageWatermark) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*DetachImageWatermarkInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpDetachImageWatermarkInput(input); err != nil {
 		return out, metadata, err
 	}
 	return next.HandleInitialize(ctx, in)
@@ -8750,6 +8830,26 @@ func (m *validateOpModifyTransitGatewayMeteringPolicy) HandleInitialize(ctx cont
 	return next.HandleInitialize(ctx, in)
 }
 
+type validateOpModifyTransitGatewayPolicyTableEntry struct {
+}
+
+func (*validateOpModifyTransitGatewayPolicyTableEntry) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpModifyTransitGatewayPolicyTableEntry) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*ModifyTransitGatewayPolicyTableEntryInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpModifyTransitGatewayPolicyTableEntryInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
 type validateOpModifyTransitGatewayPrefixListReference struct {
 }
 
@@ -9085,6 +9185,26 @@ func (m *validateOpModifyVpcEndpoint) HandleInitialize(ctx context.Context, in m
 		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
 	}
 	if err := validateOpModifyVpcEndpointInput(input); err != nil {
+		return out, metadata, err
+	}
+	return next.HandleInitialize(ctx, in)
+}
+
+type validateOpModifyVpcEndpointPayerResponsibility struct {
+}
+
+func (*validateOpModifyVpcEndpointPayerResponsibility) ID() string {
+	return "OperationInputValidation"
+}
+
+func (m *validateOpModifyVpcEndpointPayerResponsibility) HandleInitialize(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (
+	out middleware.InitializeOutput, metadata middleware.Metadata, err error,
+) {
+	input, ok := in.Parameters.(*ModifyVpcEndpointPayerResponsibilityInput)
+	if !ok {
+		return out, metadata, fmt.Errorf("unknown input parameters type %T", in.Parameters)
+	}
+	if err := validateOpModifyVpcEndpointPayerResponsibilityInput(input); err != nil {
 		return out, metadata, err
 	}
 	return next.HandleInitialize(ctx, in)
@@ -10842,6 +10962,10 @@ func addOpAttachClassicLinkVpcValidationMiddleware(stack *middleware.Stack) erro
 	return stack.Initialize.Add(&validateOpAttachClassicLinkVpc{}, middleware.After)
 }
 
+func addOpAttachImageWatermarkValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpAttachImageWatermark{}, middleware.After)
+}
+
 func addOpAttachInternetGatewayValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpAttachInternetGateway{}, middleware.After)
 }
@@ -11218,6 +11342,10 @@ func addOpCreateTransitGatewayPeeringAttachmentValidationMiddleware(stack *middl
 	return stack.Initialize.Add(&validateOpCreateTransitGatewayPeeringAttachment{}, middleware.After)
 }
 
+func addOpCreateTransitGatewayPolicyTableEntryValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpCreateTransitGatewayPolicyTableEntry{}, middleware.After)
+}
+
 func addOpCreateTransitGatewayPolicyTableValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpCreateTransitGatewayPolicyTable{}, middleware.After)
 }
@@ -11562,6 +11690,10 @@ func addOpDeleteTransitGatewayPeeringAttachmentValidationMiddleware(stack *middl
 	return stack.Initialize.Add(&validateOpDeleteTransitGatewayPeeringAttachment{}, middleware.After)
 }
 
+func addOpDeleteTransitGatewayPolicyTableEntryValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpDeleteTransitGatewayPolicyTableEntry{}, middleware.After)
+}
+
 func addOpDeleteTransitGatewayPolicyTableValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpDeleteTransitGatewayPolicyTable{}, middleware.After)
 }
@@ -11776,6 +11908,10 @@ func addOpDescribeVpcEndpointServicePermissionsValidationMiddleware(stack *middl
 
 func addOpDetachClassicLinkVpcValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpDetachClassicLinkVpc{}, middleware.After)
+}
+
+func addOpDetachImageWatermarkValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpDetachImageWatermark{}, middleware.After)
 }
 
 func addOpDetachInternetGatewayValidationMiddleware(stack *middleware.Stack) error {
@@ -12458,6 +12594,10 @@ func addOpModifyTransitGatewayMeteringPolicyValidationMiddleware(stack *middlewa
 	return stack.Initialize.Add(&validateOpModifyTransitGatewayMeteringPolicy{}, middleware.After)
 }
 
+func addOpModifyTransitGatewayPolicyTableEntryValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpModifyTransitGatewayPolicyTableEntry{}, middleware.After)
+}
+
 func addOpModifyTransitGatewayPrefixListReferenceValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpModifyTransitGatewayPrefixListReference{}, middleware.After)
 }
@@ -12524,6 +12664,10 @@ func addOpModifyVpcEndpointConnectionNotificationValidationMiddleware(stack *mid
 
 func addOpModifyVpcEndpointValidationMiddleware(stack *middleware.Stack) error {
 	return stack.Initialize.Add(&validateOpModifyVpcEndpoint{}, middleware.After)
+}
+
+func addOpModifyVpcEndpointPayerResponsibilityValidationMiddleware(stack *middleware.Stack) error {
+	return stack.Initialize.Add(&validateOpModifyVpcEndpointPayerResponsibility{}, middleware.After)
 }
 
 func addOpModifyVpcEndpointServiceConfigurationValidationMiddleware(stack *middleware.Stack) error {
@@ -14464,6 +14608,24 @@ func validateOpAttachClassicLinkVpcInput(v *AttachClassicLinkVpcInput) error {
 	}
 }
 
+func validateOpAttachImageWatermarkInput(v *AttachImageWatermarkInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "AttachImageWatermarkInput"}
+	if v.ImageId == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ImageId"))
+	}
+	if v.WatermarkName == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("WatermarkName"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpAttachInternetGatewayInput(v *AttachInternetGatewayInput) error {
 	if v == nil {
 		return nil
@@ -14913,9 +15075,6 @@ func validateOpCreateCapacityReservationFleetInput(v *CreateCapacityReservationF
 		return nil
 	}
 	invalidParams := smithy.InvalidParamsError{Context: "CreateCapacityReservationFleetInput"}
-	if v.InstanceTypeSpecifications == nil {
-		invalidParams.Add(smithy.NewErrParamRequired("InstanceTypeSpecifications"))
-	}
 	if v.TotalTargetCapacity == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("TotalTargetCapacity"))
 	}
@@ -16159,6 +16318,27 @@ func validateOpCreateTransitGatewayPeeringAttachmentInput(v *CreateTransitGatewa
 	}
 	if v.PeerRegion == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("PeerRegion"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpCreateTransitGatewayPolicyTableEntryInput(v *CreateTransitGatewayPolicyTableEntryInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "CreateTransitGatewayPolicyTableEntryInput"}
+	if v.TransitGatewayPolicyTableId == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("TransitGatewayPolicyTableId"))
+	}
+	if v.PolicyRuleNumber == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("PolicyRuleNumber"))
+	}
+	if v.TargetRouteTableId == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("TargetRouteTableId"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -17510,6 +17690,24 @@ func validateOpDeleteTransitGatewayPeeringAttachmentInput(v *DeleteTransitGatewa
 	}
 }
 
+func validateOpDeleteTransitGatewayPolicyTableEntryInput(v *DeleteTransitGatewayPolicyTableEntryInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "DeleteTransitGatewayPolicyTableEntryInput"}
+	if v.TransitGatewayPolicyTableId == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("TransitGatewayPolicyTableId"))
+	}
+	if v.PolicyRuleNumber == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("PolicyRuleNumber"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpDeleteTransitGatewayPolicyTableInput(v *DeleteTransitGatewayPolicyTableInput) error {
 	if v == nil {
 		return nil
@@ -18364,6 +18562,24 @@ func validateOpDetachClassicLinkVpcInput(v *DetachClassicLinkVpcInput) error {
 	}
 	if v.VpcId == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("VpcId"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpDetachImageWatermarkInput(v *DetachImageWatermarkInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "DetachImageWatermarkInput"}
+	if v.ImageId == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("ImageId"))
+	}
+	if v.WatermarkKey == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("WatermarkKey"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -21196,6 +21412,24 @@ func validateOpModifyTransitGatewayMeteringPolicyInput(v *ModifyTransitGatewayMe
 	}
 }
 
+func validateOpModifyTransitGatewayPolicyTableEntryInput(v *ModifyTransitGatewayPolicyTableEntryInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ModifyTransitGatewayPolicyTableEntryInput"}
+	if v.TransitGatewayPolicyTableId == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("TransitGatewayPolicyTableId"))
+	}
+	if v.PolicyRuleNumber == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("PolicyRuleNumber"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
 func validateOpModifyTransitGatewayPrefixListReferenceInput(v *ModifyTransitGatewayPrefixListReferenceInput) error {
 	if v == nil {
 		return nil
@@ -21456,6 +21690,27 @@ func validateOpModifyVpcEndpointInput(v *ModifyVpcEndpointInput) error {
 	invalidParams := smithy.InvalidParamsError{Context: "ModifyVpcEndpointInput"}
 	if v.VpcEndpointId == nil {
 		invalidParams.Add(smithy.NewErrParamRequired("VpcEndpointId"))
+	}
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	} else {
+		return nil
+	}
+}
+
+func validateOpModifyVpcEndpointPayerResponsibilityInput(v *ModifyVpcEndpointPayerResponsibilityInput) error {
+	if v == nil {
+		return nil
+	}
+	invalidParams := smithy.InvalidParamsError{Context: "ModifyVpcEndpointPayerResponsibilityInput"}
+	if v.VpcEndpointId == nil {
+		invalidParams.Add(smithy.NewErrParamRequired("VpcEndpointId"))
+	}
+	if len(v.PayerResponsibility) == 0 {
+		invalidParams.Add(smithy.NewErrParamRequired("PayerResponsibility"))
+	}
+	if len(v.Scope) == 0 {
+		invalidParams.Add(smithy.NewErrParamRequired("Scope"))
 	}
 	if invalidParams.Len() > 0 {
 		return invalidParams

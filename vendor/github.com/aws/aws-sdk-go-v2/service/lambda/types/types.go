@@ -242,6 +242,10 @@ type CapacityProvider struct {
 	// provider.
 	PropagateTags *PropagateTags
 
+	// The telemetry configuration for the capacity provider, including logging
+	// settings.
+	TelemetryConfig *CapacityProviderTelemetryConfig
+
 	noSmithyDocumentSerde
 }
 
@@ -253,6 +257,23 @@ type CapacityProviderConfig struct {
 	//
 	// This member is required.
 	LambdaManagedInstancesCapacityProviderConfig *LambdaManagedInstancesCapacityProviderConfig
+
+	noSmithyDocumentSerde
+}
+
+// The capacity provider's Amazon CloudWatch Logs configuration settings.
+type CapacityProviderLoggingConfig struct {
+
+	// The name of the Amazon CloudWatch log group the capacity provider sends logs
+	// to. By default, Lambda capacity providers send logs to a default log group named
+	// /aws/lambda/capacity-provider/<capacity provider name> . To use a different log
+	// group, enter an existing log group or enter a new log group name.
+	LogGroup *string
+
+	// Set this property to filter the system logs for your capacity provider that
+	// Lambda sends to CloudWatch. Lambda only sends system logs at the selected level
+	// of detail and lower, where DEBUG is the highest level and WARN is the lowest.
+	SystemLogLevel SystemLogLevel
 
 	noSmithyDocumentSerde
 }
@@ -285,6 +306,15 @@ type CapacityProviderScalingConfig struct {
 	// A list of scaling policies that define how the capacity provider scales compute
 	// instances based on metrics and thresholds.
 	ScalingPolicies []TargetTrackingScalingPolicy
+
+	noSmithyDocumentSerde
+}
+
+// Configuration that specifies the telemetry collection for the capacity provider.
+type CapacityProviderTelemetryConfig struct {
+
+	// The capacity provider's Amazon CloudWatch Logs configuration settings.
+	LoggingConfig *CapacityProviderLoggingConfig
 
 	noSmithyDocumentSerde
 }
@@ -623,8 +653,10 @@ type DocumentDBEventSourceConfig struct {
 	noSmithyDocumentSerde
 }
 
-// Configuration settings for [durable functions], including execution timeout and retention period
-// for execution history.
+// Configuration settings for [durable functions], including execution timeout, retention period for
+// execution history, and an optional ARN of the Key Management Service (KMS)
+// customer managed key that is used to encrypt your durable execution's payload
+// data, including input, output, and error payloads.
 //
 // [durable functions]: https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html
 type DurableConfig struct {
@@ -633,6 +665,11 @@ type DurableConfig struct {
 	// out. This timeout applies to the entire durable execution, not individual
 	// function invocations.
 	ExecutionTimeout *int32
+
+	// The ARN of the Key Management Service (KMS) customer managed key that is used
+	// to encrypt your durable execution's payload data, including input, output, and
+	// error payloads.
+	KMSKeyArn *string
 
 	// The number of days to retain execution history after a durable execution
 	// completes. After this period, execution history is no longer available through
@@ -1118,6 +1155,11 @@ type Execution struct {
 	// [ISO-8601 format]: https://www.w3.org/TR/NOTE-datetime
 	EndTimestamp *time.Time
 
+	// The ARN of the Key Management Service (KMS) customer managed key that is used
+	// to encrypt your durable execution's payload data, including input, output, and
+	// error payloads.
+	KMSKeyArn *string
+
 	noSmithyDocumentSerde
 }
 
@@ -1272,6 +1314,11 @@ type FunctionCode struct {
 	// The Amazon S3 key of the deployment package.
 	S3Key *string
 
+	// Specifies how the deployment package is stored. Use COPY (default) to upload a
+	// copy of your deployment package to Lambda. Use REFERENCE to have Lambda
+	// reference the deployment package from the specified Amazon S3 bucket.
+	S3ObjectStorageMode S3ObjectStorageMode
+
 	// For versioned objects, the version of the deployment package object to use.
 	S3ObjectVersion *string
 
@@ -1292,6 +1339,10 @@ type FunctionCode struct {
 // Details about a function's deployment package.
 type FunctionCodeLocation struct {
 
+	// An object that contains details about an error related to function deployment
+	// package retrieval.
+	Error *FunctionCodeLocationError
+
 	// URI of a container image in the Amazon ECR registry.
 	ImageUri *string
 
@@ -1304,12 +1355,27 @@ type FunctionCodeLocation struct {
 	// The resolved URI for the image.
 	ResolvedImageUri *string
 
+	// The resolved Amazon S3 object that contains the deployment package.
+	ResolvedS3Object *ResolvedS3Object
+
 	// The ARN of the Key Management Service (KMS) customer managed key that's used to
 	// encrypt your function's .zip deployment package. If you don't provide a customer
 	// managed key, Lambda uses an [Amazon Web Services owned key].
 	//
 	// [Amazon Web Services owned key]: https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#aws-owned-cmk
 	SourceKMSKeyArn *string
+
+	noSmithyDocumentSerde
+}
+
+// Details about an error related to retrieving a function's deployment package.
+type FunctionCodeLocationError struct {
+
+	// The error code for the failed retrieval.
+	ErrorCode *string
+
+	// A description of the error.
+	Message *string
 
 	noSmithyDocumentSerde
 }
@@ -1904,6 +1970,9 @@ type LayerVersionContentInput struct {
 	// The Amazon S3 key of the layer archive.
 	S3Key *string
 
+	// The storage mode for a function's deployment package.
+	S3ObjectStorageMode S3ObjectStorageMode
+
 	// For versioned objects, the version of the layer archive object to use.
 	S3ObjectVersion *string
 
@@ -1927,6 +1996,10 @@ type LayerVersionContentOutput struct {
 
 	// A link to the layer archive in Amazon S3 that is valid for 10 minutes.
 	Location *string
+
+	// Details about the resolved Amazon S3 object that contains a function's
+	// deployment package.
+	ResolvedS3Object *ResolvedS3Object
 
 	// The Amazon Resource Name (ARN) of a signing job.
 	SigningJobArn *string
@@ -2158,7 +2231,10 @@ type OperationUpdate struct {
 	// within a child context.
 	ParentId *string
 
-	// The payload for successful operations.
+	// The payload for successful operations. The maximum payload size is 6 MB for
+	// synchronous EXECUTION operations (RequestResponse invocationType), 1 MB for
+	// asynchronous EXECUTION (Event invocationType) and CHAINED_INVOKE operations,
+	// and 256 KB for CONTEXT , STEP , WAIT , and CALLBACK operations.
 	Payload *string
 
 	// Options for step operations.
@@ -2245,6 +2321,22 @@ type ProvisionedPollerConfig struct {
 	// group and aggregate maximum pollers across all ESMs in a group cannot exceed
 	// 2000.
 	PollerGroupName *string
+
+	noSmithyDocumentSerde
+}
+
+// Details about the resolved Amazon S3 object that contains a function's
+// deployment package.
+type ResolvedS3Object struct {
+
+	// The Amazon S3 bucket that contains the deployment package.
+	S3Bucket *string
+
+	// The Amazon S3 key of the deployment package.
+	S3Key *string
+
+	// The version of the deployment package object.
+	S3ObjectVersion *string
 
 	noSmithyDocumentSerde
 }

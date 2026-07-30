@@ -4,8 +4,6 @@ package lambda
 
 import (
 	"context"
-	"fmt"
-	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -38,6 +36,11 @@ type GetDurableExecutionInput struct {
 	//
 	// This member is required.
 	DurableExecutionArn *string
+
+	// Specifies whether to include execution data such as input payload, result, and
+	// error information in the response. Set to false for a more compact response
+	// that includes only execution metadata. The default value is set to true .
+	IncludeExecutionData *bool
 
 	noSmithyDocumentSerde
 }
@@ -75,6 +78,12 @@ type GetDurableExecutionOutput struct {
 	// This member is required.
 	Status types.ExecutionStatus
 
+	// Configuration settings for the durable execution, including execution timeout,
+	// retention period for execution history, and an optional ARN of the Key
+	// Management Service (KMS) customer managed key that is used to encrypt your
+	// durable execution's payload data, including input, output, and error payloads.
+	DurableConfig *types.DurableConfig
+
 	// The date and time when the durable execution ended, in Unix timestamp format.
 	// This field is only present if the execution has completed (status is SUCCEEDED ,
 	// FAILED , TIMED_OUT , or STOPPED ).
@@ -84,6 +93,10 @@ type GetDurableExecutionOutput struct {
 	// when the execution status is FAILED , TIMED_OUT , or STOPPED . The combined size
 	// of all error fields is limited to 256 KB.
 	Error *types.ErrorObject
+
+	// Indicates whether execution data is included in this response. Returns false
+	// when IncludeExecutionData is set to false in the request.
+	ExecutionDataIncluded *bool
 
 	// The JSON input payload that was provided when the durable execution was
 	// started. For asynchronous invocations, this is limited to 256 KB. For
@@ -110,9 +123,6 @@ type GetDurableExecutionOutput struct {
 }
 
 func (c *Client) addOperationGetDurableExecutionMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
-		return err
-	}
 	err = stack.Serialize.Add(&awsRestjson1_serializeOpGetDurableExecution{}, middleware.After)
 	if err != nil {
 		return err
@@ -121,17 +131,8 @@ func (c *Client) addOperationGetDurableExecutionMiddlewares(stack *middleware.St
 	if err != nil {
 		return err
 	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "GetDurableExecution"); err != nil {
-		return fmt.Errorf("add protocol finalizers: %v", err)
-	}
 
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addSetLoggerMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
 	if err = addComputeContentLength(stack); err != nil {
@@ -143,19 +144,7 @@ func (c *Client) addOperationGetDurableExecutionMiddlewares(stack *middleware.St
 	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetry(stack, options, c); err != nil {
-		return err
-	}
-	if err = addRawResponseToMetadata(stack); err != nil {
-		return err
-	}
-	if err = addRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack, options); err != nil {
+	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -164,22 +153,13 @@ func (c *Client) addOperationGetDurableExecutionMiddlewares(stack *middleware.St
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpGetDurableExecutionValidationMiddleware(stack); err != nil {
 		return err
 	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetDurableExecution(options.Region), middleware.Before); err != nil {
-		return err
-	}
-	if err = addRecursionDetection(stack); err != nil {
+	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "GetDurableExecution"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -194,22 +174,8 @@ func (c *Client) addOperationGetDurableExecutionMiddlewares(stack *middleware.St
 	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addInterceptBeforeRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addInterceptAttempt(stack, options); err != nil {
-		return err
-	}
 	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
-}
-
-func newServiceMetadataMiddleware_opGetDurableExecution(region string) *awsmiddleware.RegisterServiceMetadata {
-	return &awsmiddleware.RegisterServiceMetadata{
-		Region:        region,
-		ServiceID:     ServiceID,
-		OperationName: "GetDurableExecution",
-	}
 }
