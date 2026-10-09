@@ -4,9 +4,10 @@ package cloudwatchlogs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Retrieves metadata about lookup tables in your account. You can optionally
@@ -45,6 +46,24 @@ type DescribeLookupTablesInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeLookupTablesInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeLookupTablesRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeLookupTablesInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.LookupTableNamePrefix != nil {
+		s.WriteString(schemas.DescribeLookupTablesRequest_lookupTableNamePrefix, *v.LookupTableNamePrefix)
+	}
+	if v.MaxResults != 0 {
+		s.WriteInt32(schemas.DescribeLookupTablesRequest_maxResults, v.MaxResults)
+	}
+	if v.NextToken != nil {
+		s.WriteString(schemas.DescribeLookupTablesRequest_nextToken, *v.NextToken)
+	}
+}
+
 type DescribeLookupTablesOutput struct {
 
 	// An array of structures, where each structure contains metadata about one lookup
@@ -60,22 +79,38 @@ type DescribeLookupTablesOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeLookupTablesOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeLookupTablesResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeLookupTablesOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	serializeLookupTables(s, schemas.DescribeLookupTablesResponse_lookupTables, v.LookupTables)
+	if v.NextToken != nil {
+		s.WriteString(schemas.DescribeLookupTablesResponse_nextToken, *v.NextToken)
+	}
+}
+func (v *DescribeLookupTablesOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DescribeLookupTablesResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DescribeLookupTablesResponse_lookupTables:
+			return deserializeLookupTables(d, schemas.DescribeLookupTablesResponse_lookupTables, &v.LookupTables)
+		case schemas.DescribeLookupTablesResponse_nextToken:
+			v.NextToken = new(string)
+			return d.ReadString(schemas.DescribeLookupTablesResponse_nextToken, v.NextToken)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDescribeLookupTablesMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDescribeLookupTables{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeLookupTables, schemas.DescribeLookupTablesRequest, schemas.DescribeLookupTablesResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDescribeLookupTables{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeLookupTables, schemas.DescribeLookupTablesRequest, schemas.DescribeLookupTablesResponse), output: &DescribeLookupTablesOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -85,16 +120,7 @@ func (c *Client) addOperationDescribeLookupTablesMiddlewares(stack *middleware.S
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DescribeLookupTables"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

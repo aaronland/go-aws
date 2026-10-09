@@ -4,9 +4,10 @@ package lambda
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Creates a code signing configuration. A [code signing configuration] defines a list of allowed signing
@@ -49,6 +50,29 @@ type CreateCodeSigningConfigInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *CreateCodeSigningConfigInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.CreateCodeSigningConfigRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *CreateCodeSigningConfigInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.AllowedPublishers != nil {
+		s.WriteStruct(schemas.CreateCodeSigningConfigRequest_AllowedPublishers)
+		v.AllowedPublishers.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.CodeSigningPolicies != nil {
+		s.WriteStruct(schemas.CreateCodeSigningConfigRequest_CodeSigningPolicies)
+		v.CodeSigningPolicies.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Description != nil {
+		s.WriteString(schemas.CreateCodeSigningConfigRequest_Description, *v.Description)
+	}
+	serializeTags(s, schemas.CreateCodeSigningConfigRequest_Tags, v.Tags)
+}
+
 type CreateCodeSigningConfigOutput struct {
 
 	// The code signing configuration.
@@ -62,22 +86,37 @@ type CreateCodeSigningConfigOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *CreateCodeSigningConfigOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.CreateCodeSigningConfigResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *CreateCodeSigningConfigOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CodeSigningConfig != nil {
+		s.WriteStruct(schemas.CreateCodeSigningConfigResponse_CodeSigningConfig)
+		v.CodeSigningConfig.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *CreateCodeSigningConfigOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.CreateCodeSigningConfigResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.CreateCodeSigningConfigResponse_CodeSigningConfig:
+			v.CodeSigningConfig = &types.CodeSigningConfig{}
+			return v.CodeSigningConfig.Deserialize(d)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationCreateCodeSigningConfigMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpCreateCodeSigningConfig{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.CreateCodeSigningConfig, schemas.CreateCodeSigningConfigRequest, schemas.CreateCodeSigningConfigResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpCreateCodeSigningConfig{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.CreateCodeSigningConfig, schemas.CreateCodeSigningConfigRequest, schemas.CreateCodeSigningConfigResponse), output: &CreateCodeSigningConfigOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -87,19 +126,10 @@ func (c *Client) addOperationCreateCodeSigningConfigMiddlewares(stack *middlewar
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpCreateCodeSigningConfigValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "CreateCodeSigningConfig"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

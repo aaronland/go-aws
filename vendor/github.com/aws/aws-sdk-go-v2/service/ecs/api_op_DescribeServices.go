@@ -5,10 +5,11 @@ package ecs
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
 	smithytime "github.com/aws/smithy-go/time"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 	smithywaiter "github.com/aws/smithy-go/waiter"
 	"strconv"
 	"time"
@@ -52,6 +53,20 @@ type DescribeServicesInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeServicesInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeServicesRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeServicesInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Cluster != nil {
+		s.WriteString(schemas.DescribeServicesRequest_cluster, *v.Cluster)
+	}
+	serializeServiceFieldList(s, schemas.DescribeServicesRequest_include, v.Include)
+	serializeStringList(s, schemas.DescribeServicesRequest_services, v.Services)
+}
+
 type DescribeServicesOutput struct {
 
 	// Any failures associated with the call.
@@ -66,22 +81,35 @@ type DescribeServicesOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeServicesOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeServicesResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeServicesOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	serializeFailures(s, schemas.DescribeServicesResponse_failures, v.Failures)
+	serializeServices(s, schemas.DescribeServicesResponse_services, v.Services)
+}
+func (v *DescribeServicesOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DescribeServicesResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DescribeServicesResponse_failures:
+			return deserializeFailures(d, schemas.DescribeServicesResponse_failures, &v.Failures)
+		case schemas.DescribeServicesResponse_services:
+			return deserializeServices(d, schemas.DescribeServicesResponse_services, &v.Services)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDescribeServicesMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDescribeServices{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeServices, schemas.DescribeServicesRequest, schemas.DescribeServicesResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDescribeServices{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeServices, schemas.DescribeServicesRequest, schemas.DescribeServicesResponse), output: &DescribeServicesOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -91,19 +119,10 @@ func (c *Client) addOperationDescribeServicesMiddlewares(stack *middleware.Stack
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpDescribeServicesValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DescribeServices"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

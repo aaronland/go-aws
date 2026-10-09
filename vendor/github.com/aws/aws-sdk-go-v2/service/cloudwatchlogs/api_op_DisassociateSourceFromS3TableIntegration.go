@@ -4,8 +4,9 @@ package cloudwatchlogs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Disassociates a data source from an S3 Table Integration, removing query access
@@ -36,6 +37,18 @@ type DisassociateSourceFromS3TableIntegrationInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DisassociateSourceFromS3TableIntegrationInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DisassociateSourceFromS3TableIntegrationRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DisassociateSourceFromS3TableIntegrationInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Identifier != nil {
+		s.WriteString(schemas.DisassociateSourceFromS3TableIntegrationRequest_identifier, *v.Identifier)
+	}
+}
+
 type DisassociateSourceFromS3TableIntegrationOutput struct {
 
 	// The unique identifier of the association that was removed.
@@ -47,22 +60,35 @@ type DisassociateSourceFromS3TableIntegrationOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DisassociateSourceFromS3TableIntegrationOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DisassociateSourceFromS3TableIntegrationResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DisassociateSourceFromS3TableIntegrationOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Identifier != nil {
+		s.WriteString(schemas.DisassociateSourceFromS3TableIntegrationResponse_identifier, *v.Identifier)
+	}
+}
+func (v *DisassociateSourceFromS3TableIntegrationOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DisassociateSourceFromS3TableIntegrationResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DisassociateSourceFromS3TableIntegrationResponse_identifier:
+			v.Identifier = new(string)
+			return d.ReadString(schemas.DisassociateSourceFromS3TableIntegrationResponse_identifier, v.Identifier)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDisassociateSourceFromS3TableIntegrationMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDisassociateSourceFromS3TableIntegration{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DisassociateSourceFromS3TableIntegration, schemas.DisassociateSourceFromS3TableIntegrationRequest, schemas.DisassociateSourceFromS3TableIntegrationResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDisassociateSourceFromS3TableIntegration{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DisassociateSourceFromS3TableIntegration, schemas.DisassociateSourceFromS3TableIntegrationRequest, schemas.DisassociateSourceFromS3TableIntegrationResponse), output: &DisassociateSourceFromS3TableIntegrationOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -72,19 +98,10 @@ func (c *Client) addOperationDisassociateSourceFromS3TableIntegrationMiddlewares
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpDisassociateSourceFromS3TableIntegrationValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DisassociateSourceFromS3TableIntegration"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

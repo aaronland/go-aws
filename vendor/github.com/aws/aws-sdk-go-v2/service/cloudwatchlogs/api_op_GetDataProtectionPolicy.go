@@ -4,8 +4,9 @@ package cloudwatchlogs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Returns information about a log group data protection policy.
@@ -35,6 +36,18 @@ type GetDataProtectionPolicyInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetDataProtectionPolicyInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetDataProtectionPolicyRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetDataProtectionPolicyInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.LogGroupIdentifier != nil {
+		s.WriteString(schemas.GetDataProtectionPolicyRequest_logGroupIdentifier, *v.LogGroupIdentifier)
+	}
+}
+
 type GetDataProtectionPolicyOutput struct {
 
 	// The date and time that this policy was most recently updated.
@@ -52,22 +65,47 @@ type GetDataProtectionPolicyOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetDataProtectionPolicyOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetDataProtectionPolicyResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetDataProtectionPolicyOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.LastUpdatedTime != nil {
+		s.WriteInt64(schemas.GetDataProtectionPolicyResponse_lastUpdatedTime, *v.LastUpdatedTime)
+	}
+	if v.LogGroupIdentifier != nil {
+		s.WriteString(schemas.GetDataProtectionPolicyResponse_logGroupIdentifier, *v.LogGroupIdentifier)
+	}
+	if v.PolicyDocument != nil {
+		s.WriteString(schemas.GetDataProtectionPolicyResponse_policyDocument, *v.PolicyDocument)
+	}
+}
+func (v *GetDataProtectionPolicyOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GetDataProtectionPolicyResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GetDataProtectionPolicyResponse_lastUpdatedTime:
+			v.LastUpdatedTime = new(int64)
+			return d.ReadInt64(schemas.GetDataProtectionPolicyResponse_lastUpdatedTime, v.LastUpdatedTime)
+		case schemas.GetDataProtectionPolicyResponse_logGroupIdentifier:
+			v.LogGroupIdentifier = new(string)
+			return d.ReadString(schemas.GetDataProtectionPolicyResponse_logGroupIdentifier, v.LogGroupIdentifier)
+		case schemas.GetDataProtectionPolicyResponse_policyDocument:
+			v.PolicyDocument = new(string)
+			return d.ReadString(schemas.GetDataProtectionPolicyResponse_policyDocument, v.PolicyDocument)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationGetDataProtectionPolicyMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetDataProtectionPolicy{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetDataProtectionPolicy, schemas.GetDataProtectionPolicyRequest, schemas.GetDataProtectionPolicyResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpGetDataProtectionPolicy{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetDataProtectionPolicy, schemas.GetDataProtectionPolicyRequest, schemas.GetDataProtectionPolicyResponse), output: &GetDataProtectionPolicyOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -77,19 +115,10 @@ func (c *Client) addOperationGetDataProtectionPolicyMiddlewares(stack *middlewar
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpGetDataProtectionPolicyValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "GetDataProtectionPolicy"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

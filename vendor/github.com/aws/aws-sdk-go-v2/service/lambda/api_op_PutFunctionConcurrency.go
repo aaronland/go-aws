@@ -4,8 +4,9 @@ package lambda
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/schemas"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Sets the maximum number of simultaneous executions for a function, and reserves
@@ -64,6 +65,21 @@ type PutFunctionConcurrencyInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutFunctionConcurrencyInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutFunctionConcurrencyRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutFunctionConcurrencyInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.FunctionName != nil {
+		s.WriteString(schemas.PutFunctionConcurrencyRequest_FunctionName, *v.FunctionName)
+	}
+	if v.ReservedConcurrentExecutions != nil {
+		s.WriteInt32(schemas.PutFunctionConcurrencyRequest_ReservedConcurrentExecutions, *v.ReservedConcurrentExecutions)
+	}
+}
+
 type PutFunctionConcurrencyOutput struct {
 
 	// The number of concurrent executions that are reserved for this function. For
@@ -78,22 +94,35 @@ type PutFunctionConcurrencyOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutFunctionConcurrencyOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.Concurrency)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutFunctionConcurrencyOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ReservedConcurrentExecutions != nil {
+		s.WriteInt32(schemas.Concurrency_ReservedConcurrentExecutions, *v.ReservedConcurrentExecutions)
+	}
+}
+func (v *PutFunctionConcurrencyOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.Concurrency, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.Concurrency_ReservedConcurrentExecutions:
+			v.ReservedConcurrentExecutions = new(int32)
+			return d.ReadInt32(schemas.Concurrency_ReservedConcurrentExecutions, v.ReservedConcurrentExecutions)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationPutFunctionConcurrencyMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpPutFunctionConcurrency{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutFunctionConcurrency, schemas.PutFunctionConcurrencyRequest, schemas.Concurrency)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpPutFunctionConcurrency{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutFunctionConcurrency, schemas.PutFunctionConcurrencyRequest, schemas.Concurrency), output: &PutFunctionConcurrencyOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -103,19 +132,10 @@ func (c *Client) addOperationPutFunctionConcurrencyMiddlewares(stack *middleware
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpPutFunctionConcurrencyValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "PutFunctionConcurrency"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

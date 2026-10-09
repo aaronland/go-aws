@@ -127,6 +127,27 @@ func (CodeSigningPolicy) Values() []CodeSigningPolicy {
 	}
 }
 
+type DirectS3Read string
+
+// Enum values for DirectS3Read
+const (
+	DirectS3ReadEnabled  DirectS3Read = "ENABLED"
+	DirectS3ReadDisabled DirectS3Read = "DISABLED"
+	DirectS3ReadAuto     DirectS3Read = "AUTO"
+)
+
+// Values returns all known values for DirectS3Read. Note that this can be
+// expanded in the future, and so it is only as up to date as the client.
+//
+// The ordering of this slice is not guaranteed to be stable across updates.
+func (DirectS3Read) Values() []DirectS3Read {
+	return []DirectS3Read{
+		"ENABLED",
+		"DISABLED",
+		"AUTO",
+	}
+}
+
 type EndPointType string
 
 // Enum values for EndPointType
@@ -433,6 +454,7 @@ const (
 	KafkaSchemaRegistryAuthTypeBasicAuth                KafkaSchemaRegistryAuthType = "BASIC_AUTH"
 	KafkaSchemaRegistryAuthTypeClientCertificateTlsAuth KafkaSchemaRegistryAuthType = "CLIENT_CERTIFICATE_TLS_AUTH"
 	KafkaSchemaRegistryAuthTypeServerRootCaCertificate  KafkaSchemaRegistryAuthType = "SERVER_ROOT_CA_CERTIFICATE"
+	KafkaSchemaRegistryAuthTypeOauthbearerAuth          KafkaSchemaRegistryAuthType = "OAUTHBEARER_AUTH"
 )
 
 // Values returns all known values for KafkaSchemaRegistryAuthType. Note that this
@@ -444,6 +466,7 @@ func (KafkaSchemaRegistryAuthType) Values() []KafkaSchemaRegistryAuthType {
 		"BASIC_AUTH",
 		"CLIENT_CERTIFICATE_TLS_AUTH",
 		"SERVER_ROOT_CA_CERTIFICATE",
+		"OAUTHBEARER_AUTH",
 	}
 }
 
@@ -847,6 +870,8 @@ const (
 	RuntimeProvided       Runtime = "provided"
 	RuntimeProvidedal2    Runtime = "provided.al2"
 	RuntimeProvidedal2023 Runtime = "provided.al2023"
+	RuntimeNodejs26x      Runtime = "nodejs26.x"
+	RuntimePython315      Runtime = "python3.15"
 	RuntimeJava8al2023    Runtime = "java8.al2023"
 	RuntimeJava11al2023   Runtime = "java11.al2023"
 	RuntimeJava17al2023   Runtime = "java17.al2023"
@@ -904,6 +929,8 @@ func (Runtime) Values() []Runtime {
 		"provided",
 		"provided.al2",
 		"provided.al2023",
+		"nodejs26.x",
+		"python3.15",
 		"java8.al2023",
 		"java11.al2023",
 		"java17.al2023",
@@ -914,9 +941,10 @@ type S3ObjectStorageMode string
 
 // Enum values for S3ObjectStorageMode
 const (
-	// COPY (default) uploads a copy of your deployment package to Lambda.
+	// The default storage mode. Uploads a copy of your deployment package to Lambda.
 	S3ObjectStorageModeCopy S3ObjectStorageMode = "COPY"
-	// Lambda references the deployment package from the specified Amazon S3 bucket.
+	// The reference storage mode. Lambda references the deployment package from the
+	// specified Amazon S3 bucket without uploading a copy.
 	S3ObjectStorageModeReference S3ObjectStorageMode = "REFERENCE"
 )
 
@@ -993,14 +1021,21 @@ type SourceAccessType string
 
 // Enum values for SourceAccessType
 const (
-	SourceAccessTypeBasicAuth                SourceAccessType = "BASIC_AUTH"
-	SourceAccessTypeVpcSubnet                SourceAccessType = "VPC_SUBNET"
-	SourceAccessTypeVpcSecurityGroup         SourceAccessType = "VPC_SECURITY_GROUP"
-	SourceAccessTypeSaslScram512Auth         SourceAccessType = "SASL_SCRAM_512_AUTH"
-	SourceAccessTypeSaslScram256Auth         SourceAccessType = "SASL_SCRAM_256_AUTH"
-	SourceAccessTypeVirtualHost              SourceAccessType = "VIRTUAL_HOST"
-	SourceAccessTypeClientCertificateTlsAuth SourceAccessType = "CLIENT_CERTIFICATE_TLS_AUTH"
-	SourceAccessTypeServerRootCaCertificate  SourceAccessType = "SERVER_ROOT_CA_CERTIFICATE"
+	SourceAccessTypeBasicAuth                 SourceAccessType = "BASIC_AUTH"
+	SourceAccessTypeVpcSubnet                 SourceAccessType = "VPC_SUBNET"
+	SourceAccessTypeVpcSecurityGroup          SourceAccessType = "VPC_SECURITY_GROUP"
+	SourceAccessTypeSaslScram512Auth          SourceAccessType = "SASL_SCRAM_512_AUTH"
+	SourceAccessTypeSaslScram256Auth          SourceAccessType = "SASL_SCRAM_256_AUTH"
+	SourceAccessTypeVirtualHost               SourceAccessType = "VIRTUAL_HOST"
+	SourceAccessTypeClientCertificateTlsAuth  SourceAccessType = "CLIENT_CERTIFICATE_TLS_AUTH"
+	SourceAccessTypeServerRootCaCertificate   SourceAccessType = "SERVER_ROOT_CA_CERTIFICATE"
+	SourceAccessTypeOauthbearerAuth           SourceAccessType = "OAUTHBEARER_AUTH"
+	SourceAccessTypeOauthbearerScope          SourceAccessType = "OAUTHBEARER_SCOPE"
+	SourceAccessTypeOauthbearerAudience       SourceAccessType = "OAUTHBEARER_AUDIENCE"
+	SourceAccessTypeOauthbearerLogicalCluster SourceAccessType = "OAUTHBEARER_LOGICAL_CLUSTER"
+	SourceAccessTypeOauthbearerIdentityPool   SourceAccessType = "OAUTHBEARER_IDENTITY_POOL"
+	SourceAccessTypeIamAuth                   SourceAccessType = "IAM_AUTH"
+	SourceAccessTypeIamOauthbearerAuth        SourceAccessType = "IAM_OAUTHBEARER_AUTH"
 )
 
 // Values returns all known values for SourceAccessType. Note that this can be
@@ -1017,6 +1052,13 @@ func (SourceAccessType) Values() []SourceAccessType {
 		"VIRTUAL_HOST",
 		"CLIENT_CERTIFICATE_TLS_AUTH",
 		"SERVER_ROOT_CA_CERTIFICATE",
+		"OAUTHBEARER_AUTH",
+		"OAUTHBEARER_SCOPE",
+		"OAUTHBEARER_AUDIENCE",
+		"OAUTHBEARER_LOGICAL_CLUSTER",
+		"OAUTHBEARER_IDENTITY_POOL",
+		"IAM_AUTH",
+		"IAM_OAUTHBEARER_AUTH",
 	}
 }
 

@@ -4,9 +4,10 @@ package ecs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // This action is only used by the Amazon ECS agent, and it is not intended for
@@ -42,6 +43,19 @@ type SubmitAttachmentStateChangesInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *SubmitAttachmentStateChangesInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SubmitAttachmentStateChangesRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SubmitAttachmentStateChangesInput) SerializeMembers(s smithy.ShapeSerializer) {
+	serializeAttachmentStateChanges(s, schemas.SubmitAttachmentStateChangesRequest_attachments, v.Attachments)
+	if v.Cluster != nil {
+		s.WriteString(schemas.SubmitAttachmentStateChangesRequest_cluster, *v.Cluster)
+	}
+}
+
 type SubmitAttachmentStateChangesOutput struct {
 
 	// Acknowledgement of the state change.
@@ -53,22 +67,35 @@ type SubmitAttachmentStateChangesOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *SubmitAttachmentStateChangesOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SubmitAttachmentStateChangesResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SubmitAttachmentStateChangesOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Acknowledgment != nil {
+		s.WriteString(schemas.SubmitAttachmentStateChangesResponse_acknowledgment, *v.Acknowledgment)
+	}
+}
+func (v *SubmitAttachmentStateChangesOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SubmitAttachmentStateChangesResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.SubmitAttachmentStateChangesResponse_acknowledgment:
+			v.Acknowledgment = new(string)
+			return d.ReadString(schemas.SubmitAttachmentStateChangesResponse_acknowledgment, v.Acknowledgment)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationSubmitAttachmentStateChangesMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpSubmitAttachmentStateChanges{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.SubmitAttachmentStateChanges, schemas.SubmitAttachmentStateChangesRequest, schemas.SubmitAttachmentStateChangesResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpSubmitAttachmentStateChanges{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.SubmitAttachmentStateChanges, schemas.SubmitAttachmentStateChangesRequest, schemas.SubmitAttachmentStateChangesResponse), output: &SubmitAttachmentStateChangesOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -78,19 +105,10 @@ func (c *Client) addOperationSubmitAttachmentStateChangesMiddlewares(stack *midd
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpSubmitAttachmentStateChangesValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "SubmitAttachmentStateChanges"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

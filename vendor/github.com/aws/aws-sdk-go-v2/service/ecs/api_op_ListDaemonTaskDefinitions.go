@@ -4,9 +4,10 @@ package ecs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Returns a list of daemon task definitions that are registered to your account.
@@ -75,6 +76,36 @@ type ListDaemonTaskDefinitionsInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ListDaemonTaskDefinitionsInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ListDaemonTaskDefinitionsRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ListDaemonTaskDefinitionsInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Family != nil {
+		s.WriteString(schemas.ListDaemonTaskDefinitionsRequest_family, *v.Family)
+	}
+	if v.FamilyPrefix != nil {
+		s.WriteString(schemas.ListDaemonTaskDefinitionsRequest_familyPrefix, *v.FamilyPrefix)
+	}
+	if v.MaxResults != nil {
+		s.WriteInt32(schemas.ListDaemonTaskDefinitionsRequest_maxResults, *v.MaxResults)
+	}
+	if v.NextToken != nil {
+		s.WriteString(schemas.ListDaemonTaskDefinitionsRequest_nextToken, *v.NextToken)
+	}
+	if v.Revision != "" {
+		s.WriteString(schemas.ListDaemonTaskDefinitionsRequest_revision, string(v.Revision))
+	}
+	if v.Sort != "" {
+		s.WriteString(schemas.ListDaemonTaskDefinitionsRequest_sort, string(v.Sort))
+	}
+	if v.Status != "" {
+		s.WriteString(schemas.ListDaemonTaskDefinitionsRequest_status, string(v.Status))
+	}
+}
+
 type ListDaemonTaskDefinitionsOutput struct {
 
 	// The list of daemon task definition summaries.
@@ -91,22 +122,38 @@ type ListDaemonTaskDefinitionsOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ListDaemonTaskDefinitionsOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ListDaemonTaskDefinitionsResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ListDaemonTaskDefinitionsOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	serializeDaemonTaskDefinitionSummaries(s, schemas.ListDaemonTaskDefinitionsResponse_daemonTaskDefinitions, v.DaemonTaskDefinitions)
+	if v.NextToken != nil {
+		s.WriteString(schemas.ListDaemonTaskDefinitionsResponse_nextToken, *v.NextToken)
+	}
+}
+func (v *ListDaemonTaskDefinitionsOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ListDaemonTaskDefinitionsResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ListDaemonTaskDefinitionsResponse_daemonTaskDefinitions:
+			return deserializeDaemonTaskDefinitionSummaries(d, schemas.ListDaemonTaskDefinitionsResponse_daemonTaskDefinitions, &v.DaemonTaskDefinitions)
+		case schemas.ListDaemonTaskDefinitionsResponse_nextToken:
+			v.NextToken = new(string)
+			return d.ReadString(schemas.ListDaemonTaskDefinitionsResponse_nextToken, v.NextToken)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationListDaemonTaskDefinitionsMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpListDaemonTaskDefinitions{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.ListDaemonTaskDefinitions, schemas.ListDaemonTaskDefinitionsRequest, schemas.ListDaemonTaskDefinitionsResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpListDaemonTaskDefinitions{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.ListDaemonTaskDefinitions, schemas.ListDaemonTaskDefinitionsRequest, schemas.ListDaemonTaskDefinitionsResponse), output: &ListDaemonTaskDefinitionsOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -116,16 +163,7 @@ func (c *Client) addOperationListDaemonTaskDefinitionsMiddlewares(stack *middlew
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "ListDaemonTaskDefinitions"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

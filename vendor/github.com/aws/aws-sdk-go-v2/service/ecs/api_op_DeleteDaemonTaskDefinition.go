@@ -4,8 +4,9 @@ package ecs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/schemas"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Deletes the specified daemon task definition. After a daemon task definition is
@@ -39,6 +40,18 @@ type DeleteDaemonTaskDefinitionInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DeleteDaemonTaskDefinitionInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DeleteDaemonTaskDefinitionRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DeleteDaemonTaskDefinitionInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DaemonTaskDefinition != nil {
+		s.WriteString(schemas.DeleteDaemonTaskDefinitionRequest_daemonTaskDefinition, *v.DaemonTaskDefinition)
+	}
+}
+
 type DeleteDaemonTaskDefinitionOutput struct {
 
 	// The full Amazon Resource Name (ARN) of the deleted daemon task definition.
@@ -50,22 +63,35 @@ type DeleteDaemonTaskDefinitionOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DeleteDaemonTaskDefinitionOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DeleteDaemonTaskDefinitionResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DeleteDaemonTaskDefinitionOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DaemonTaskDefinitionArn != nil {
+		s.WriteString(schemas.DeleteDaemonTaskDefinitionResponse_daemonTaskDefinitionArn, *v.DaemonTaskDefinitionArn)
+	}
+}
+func (v *DeleteDaemonTaskDefinitionOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DeleteDaemonTaskDefinitionResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DeleteDaemonTaskDefinitionResponse_daemonTaskDefinitionArn:
+			v.DaemonTaskDefinitionArn = new(string)
+			return d.ReadString(schemas.DeleteDaemonTaskDefinitionResponse_daemonTaskDefinitionArn, v.DaemonTaskDefinitionArn)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDeleteDaemonTaskDefinitionMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDeleteDaemonTaskDefinition{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DeleteDaemonTaskDefinition, schemas.DeleteDaemonTaskDefinitionRequest, schemas.DeleteDaemonTaskDefinitionResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDeleteDaemonTaskDefinition{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DeleteDaemonTaskDefinition, schemas.DeleteDaemonTaskDefinitionRequest, schemas.DeleteDaemonTaskDefinitionResponse), output: &DeleteDaemonTaskDefinitionOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -75,19 +101,10 @@ func (c *Client) addOperationDeleteDaemonTaskDefinitionMiddlewares(stack *middle
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpDeleteDaemonTaskDefinitionValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DeleteDaemonTaskDefinition"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

@@ -4,9 +4,10 @@ package lambda
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Retrieves the scaling configuration for a Lambda Managed Instances function.
@@ -41,6 +42,21 @@ type GetFunctionScalingConfigInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetFunctionScalingConfigInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetFunctionScalingConfigRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetFunctionScalingConfigInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.FunctionName != nil {
+		s.WriteString(schemas.GetFunctionScalingConfigRequest_FunctionName, *v.FunctionName)
+	}
+	if v.Qualifier != nil {
+		s.WriteString(schemas.GetFunctionScalingConfigRequest_Qualifier, *v.Qualifier)
+	}
+}
+
 type GetFunctionScalingConfigOutput struct {
 
 	// The scaling configuration that is currently applied to the function. This
@@ -59,22 +75,51 @@ type GetFunctionScalingConfigOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetFunctionScalingConfigOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetFunctionScalingConfigResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetFunctionScalingConfigOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.AppliedFunctionScalingConfig != nil {
+		s.WriteStruct(schemas.GetFunctionScalingConfigResponse_AppliedFunctionScalingConfig)
+		v.AppliedFunctionScalingConfig.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.FunctionArn != nil {
+		s.WriteString(schemas.GetFunctionScalingConfigResponse_FunctionArn, *v.FunctionArn)
+	}
+	if v.RequestedFunctionScalingConfig != nil {
+		s.WriteStruct(schemas.GetFunctionScalingConfigResponse_RequestedFunctionScalingConfig)
+		v.RequestedFunctionScalingConfig.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *GetFunctionScalingConfigOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GetFunctionScalingConfigResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GetFunctionScalingConfigResponse_AppliedFunctionScalingConfig:
+			v.AppliedFunctionScalingConfig = &types.FunctionScalingConfig{}
+			return v.AppliedFunctionScalingConfig.Deserialize(d)
+		case schemas.GetFunctionScalingConfigResponse_FunctionArn:
+			v.FunctionArn = new(string)
+			return d.ReadString(schemas.GetFunctionScalingConfigResponse_FunctionArn, v.FunctionArn)
+		case schemas.GetFunctionScalingConfigResponse_RequestedFunctionScalingConfig:
+			v.RequestedFunctionScalingConfig = &types.FunctionScalingConfig{}
+			return v.RequestedFunctionScalingConfig.Deserialize(d)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationGetFunctionScalingConfigMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpGetFunctionScalingConfig{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetFunctionScalingConfig, schemas.GetFunctionScalingConfigRequest, schemas.GetFunctionScalingConfigResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpGetFunctionScalingConfig{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetFunctionScalingConfig, schemas.GetFunctionScalingConfigRequest, schemas.GetFunctionScalingConfigResponse), output: &GetFunctionScalingConfigOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -84,19 +129,10 @@ func (c *Client) addOperationGetFunctionScalingConfigMiddlewares(stack *middlewa
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpGetFunctionScalingConfigValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "GetFunctionScalingConfig"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

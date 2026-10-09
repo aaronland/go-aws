@@ -5,9 +5,10 @@ package lambda
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Lists [Lambda layers] and shows information about the latest version of each. Specify a [runtime identifier] to
@@ -59,6 +60,27 @@ type ListLayersInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ListLayersInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ListLayersRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ListLayersInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CompatibleArchitecture != "" {
+		s.WriteString(schemas.ListLayersRequest_CompatibleArchitecture, string(v.CompatibleArchitecture))
+	}
+	if v.CompatibleRuntime != "" {
+		s.WriteString(schemas.ListLayersRequest_CompatibleRuntime, string(v.CompatibleRuntime))
+	}
+	if v.Marker != nil {
+		s.WriteString(schemas.ListLayersRequest_Marker, *v.Marker)
+	}
+	if v.MaxItems != nil {
+		s.WriteInt32(schemas.ListLayersRequest_MaxItems, *v.MaxItems)
+	}
+}
+
 type ListLayersOutput struct {
 
 	// A list of function layers.
@@ -73,22 +95,38 @@ type ListLayersOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ListLayersOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ListLayersResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ListLayersOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	serializeLayersList(s, schemas.ListLayersResponse_Layers, v.Layers)
+	if v.NextMarker != nil {
+		s.WriteString(schemas.ListLayersResponse_NextMarker, *v.NextMarker)
+	}
+}
+func (v *ListLayersOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ListLayersResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ListLayersResponse_Layers:
+			return deserializeLayersList(d, schemas.ListLayersResponse_Layers, &v.Layers)
+		case schemas.ListLayersResponse_NextMarker:
+			v.NextMarker = new(string)
+			return d.ReadString(schemas.ListLayersResponse_NextMarker, v.NextMarker)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationListLayersMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpListLayers{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.ListLayers, schemas.ListLayersRequest, schemas.ListLayersResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpListLayers{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.ListLayers, schemas.ListLayersRequest, schemas.ListLayersResponse), output: &ListLayersOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -98,16 +136,7 @@ func (c *Client) addOperationListLayersMiddlewares(stack *middleware.Stack, opti
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "ListLayers"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

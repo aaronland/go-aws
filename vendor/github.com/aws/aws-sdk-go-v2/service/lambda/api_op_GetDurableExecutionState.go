@@ -5,9 +5,10 @@ package lambda
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Retrieves the current execution state required for the replay process during [durable function]
@@ -61,6 +62,27 @@ type GetDurableExecutionStateInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetDurableExecutionStateInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetDurableExecutionStateRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetDurableExecutionStateInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CheckpointToken != nil {
+		s.WriteString(schemas.GetDurableExecutionStateRequest_CheckpointToken, *v.CheckpointToken)
+	}
+	if v.DurableExecutionArn != nil {
+		s.WriteString(schemas.GetDurableExecutionStateRequest_DurableExecutionArn, *v.DurableExecutionArn)
+	}
+	if v.Marker != nil {
+		s.WriteString(schemas.GetDurableExecutionStateRequest_Marker, *v.Marker)
+	}
+	if v.MaxItems != 0 {
+		s.WriteInt32(schemas.GetDurableExecutionStateRequest_MaxItems, v.MaxItems)
+	}
+}
+
 // The response from the GetDurableExecutionState operation, containing the
 // current execution state for replay.
 type GetDurableExecutionStateOutput struct {
@@ -82,22 +104,38 @@ type GetDurableExecutionStateOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetDurableExecutionStateOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetDurableExecutionStateResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetDurableExecutionStateOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.NextMarker != nil {
+		s.WriteString(schemas.GetDurableExecutionStateResponse_NextMarker, *v.NextMarker)
+	}
+	serializeOperations(s, schemas.GetDurableExecutionStateResponse_Operations, v.Operations)
+}
+func (v *GetDurableExecutionStateOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GetDurableExecutionStateResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GetDurableExecutionStateResponse_NextMarker:
+			v.NextMarker = new(string)
+			return d.ReadString(schemas.GetDurableExecutionStateResponse_NextMarker, v.NextMarker)
+		case schemas.GetDurableExecutionStateResponse_Operations:
+			return deserializeOperations(d, schemas.GetDurableExecutionStateResponse_Operations, &v.Operations)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationGetDurableExecutionStateMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpGetDurableExecutionState{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetDurableExecutionState, schemas.GetDurableExecutionStateRequest, schemas.GetDurableExecutionStateResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpGetDurableExecutionState{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetDurableExecutionState, schemas.GetDurableExecutionStateRequest, schemas.GetDurableExecutionStateResponse), output: &GetDurableExecutionStateOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -107,19 +145,10 @@ func (c *Client) addOperationGetDurableExecutionStateMiddlewares(stack *middlewa
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpGetDurableExecutionStateValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "GetDurableExecutionState"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

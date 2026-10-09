@@ -4,9 +4,10 @@ package ecs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Deletes one or more custom attributes from an Amazon ECS resource.
@@ -43,6 +44,19 @@ type DeleteAttributesInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DeleteAttributesInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DeleteAttributesRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DeleteAttributesInput) SerializeMembers(s smithy.ShapeSerializer) {
+	serializeAttributes(s, schemas.DeleteAttributesRequest_attributes, v.Attributes)
+	if v.Cluster != nil {
+		s.WriteString(schemas.DeleteAttributesRequest_cluster, *v.Cluster)
+	}
+}
+
 type DeleteAttributesOutput struct {
 
 	// A list of attribute objects that were successfully deleted from your resource.
@@ -54,22 +68,32 @@ type DeleteAttributesOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DeleteAttributesOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DeleteAttributesResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DeleteAttributesOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	serializeAttributes(s, schemas.DeleteAttributesResponse_attributes, v.Attributes)
+}
+func (v *DeleteAttributesOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DeleteAttributesResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DeleteAttributesResponse_attributes:
+			return deserializeAttributes(d, schemas.DeleteAttributesResponse_attributes, &v.Attributes)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDeleteAttributesMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDeleteAttributes{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DeleteAttributes, schemas.DeleteAttributesRequest, schemas.DeleteAttributesResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDeleteAttributes{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DeleteAttributes, schemas.DeleteAttributesRequest, schemas.DeleteAttributesResponse), output: &DeleteAttributesOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -79,19 +103,10 @@ func (c *Client) addOperationDeleteAttributesMiddlewares(stack *middleware.Stack
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpDeleteAttributesValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DeleteAttributes"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

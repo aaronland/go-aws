@@ -4,9 +4,10 @@ package lambda
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Sets the scaling configuration for a Lambda Managed Instances function. The
@@ -48,6 +49,26 @@ type PutFunctionScalingConfigInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutFunctionScalingConfigInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutFunctionScalingConfigRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutFunctionScalingConfigInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.FunctionName != nil {
+		s.WriteString(schemas.PutFunctionScalingConfigRequest_FunctionName, *v.FunctionName)
+	}
+	if v.FunctionScalingConfig != nil {
+		s.WriteStruct(schemas.PutFunctionScalingConfigRequest_FunctionScalingConfig)
+		v.FunctionScalingConfig.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.Qualifier != nil {
+		s.WriteString(schemas.PutFunctionScalingConfigRequest_Qualifier, *v.Qualifier)
+	}
+}
+
 type PutFunctionScalingConfigOutput struct {
 
 	// The current state of the function after applying the scaling configuration.
@@ -59,22 +80,39 @@ type PutFunctionScalingConfigOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutFunctionScalingConfigOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutFunctionScalingConfigResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutFunctionScalingConfigOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.FunctionState != "" {
+		s.WriteString(schemas.PutFunctionScalingConfigResponse_FunctionState, string(v.FunctionState))
+	}
+}
+func (v *PutFunctionScalingConfigOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.PutFunctionScalingConfigResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.PutFunctionScalingConfigResponse_FunctionState:
+			var ev string
+			if err := d.ReadString(schemas.PutFunctionScalingConfigResponse_FunctionState, &ev); err != nil {
+				return err
+			}
+			v.FunctionState = types.State(ev)
+			return nil
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationPutFunctionScalingConfigMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpPutFunctionScalingConfig{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutFunctionScalingConfig, schemas.PutFunctionScalingConfigRequest, schemas.PutFunctionScalingConfigResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpPutFunctionScalingConfig{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutFunctionScalingConfig, schemas.PutFunctionScalingConfigRequest, schemas.PutFunctionScalingConfigResponse), output: &PutFunctionScalingConfigOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -84,19 +122,10 @@ func (c *Client) addOperationPutFunctionScalingConfigMiddlewares(stack *middlewa
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpPutFunctionScalingConfigValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "PutFunctionScalingConfig"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

@@ -5,9 +5,10 @@ package cloudwatchlogs
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Retrieves a list of the delivery sources that have been created in the account.
@@ -38,6 +39,21 @@ type DescribeDeliverySourcesInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeDeliverySourcesInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeDeliverySourcesRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeDeliverySourcesInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Limit != nil {
+		s.WriteInt32(schemas.DescribeDeliverySourcesRequest_limit, *v.Limit)
+	}
+	if v.NextToken != nil {
+		s.WriteString(schemas.DescribeDeliverySourcesRequest_nextToken, *v.NextToken)
+	}
+}
+
 type DescribeDeliverySourcesOutput struct {
 
 	// An array of structures. Each structure contains information about one delivery
@@ -53,22 +69,38 @@ type DescribeDeliverySourcesOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeDeliverySourcesOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeDeliverySourcesResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeDeliverySourcesOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	serializeDeliverySources(s, schemas.DescribeDeliverySourcesResponse_deliverySources, v.DeliverySources)
+	if v.NextToken != nil {
+		s.WriteString(schemas.DescribeDeliverySourcesResponse_nextToken, *v.NextToken)
+	}
+}
+func (v *DescribeDeliverySourcesOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DescribeDeliverySourcesResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DescribeDeliverySourcesResponse_deliverySources:
+			return deserializeDeliverySources(d, schemas.DescribeDeliverySourcesResponse_deliverySources, &v.DeliverySources)
+		case schemas.DescribeDeliverySourcesResponse_nextToken:
+			v.NextToken = new(string)
+			return d.ReadString(schemas.DescribeDeliverySourcesResponse_nextToken, v.NextToken)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDescribeDeliverySourcesMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDescribeDeliverySources{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeDeliverySources, schemas.DescribeDeliverySourcesRequest, schemas.DescribeDeliverySourcesResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDescribeDeliverySources{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeDeliverySources, schemas.DescribeDeliverySourcesRequest, schemas.DescribeDeliverySourcesResponse), output: &DescribeDeliverySourcesOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -78,16 +110,7 @@ func (c *Client) addOperationDescribeDeliverySourcesMiddlewares(stack *middlewar
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DescribeDeliverySources"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

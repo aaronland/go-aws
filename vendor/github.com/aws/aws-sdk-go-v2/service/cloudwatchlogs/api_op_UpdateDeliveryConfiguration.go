@@ -4,9 +4,10 @@ package cloudwatchlogs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Use this operation to update the configuration of a [delivery] to change either the S3
@@ -51,6 +52,27 @@ type UpdateDeliveryConfigurationInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *UpdateDeliveryConfigurationInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.UpdateDeliveryConfigurationRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *UpdateDeliveryConfigurationInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.FieldDelimiter != nil {
+		s.WriteString(schemas.UpdateDeliveryConfigurationRequest_fieldDelimiter, *v.FieldDelimiter)
+	}
+	if v.Id != nil {
+		s.WriteString(schemas.UpdateDeliveryConfigurationRequest_id, *v.Id)
+	}
+	serializeRecordFields(s, schemas.UpdateDeliveryConfigurationRequest_recordFields, v.RecordFields)
+	if v.S3DeliveryConfiguration != nil {
+		s.WriteStruct(schemas.UpdateDeliveryConfigurationRequest_s3DeliveryConfiguration)
+		v.S3DeliveryConfiguration.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+
 type UpdateDeliveryConfigurationOutput struct {
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
@@ -58,22 +80,29 @@ type UpdateDeliveryConfigurationOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *UpdateDeliveryConfigurationOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.UpdateDeliveryConfigurationResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *UpdateDeliveryConfigurationOutput) SerializeMembers(s smithy.ShapeSerializer) {
+}
+func (v *UpdateDeliveryConfigurationOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.UpdateDeliveryConfigurationResponse, func(s *smithy.Schema) error {
+		switch s {
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationUpdateDeliveryConfigurationMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpUpdateDeliveryConfiguration{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.UpdateDeliveryConfiguration, schemas.UpdateDeliveryConfigurationRequest, schemas.UpdateDeliveryConfigurationResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpUpdateDeliveryConfiguration{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.UpdateDeliveryConfiguration, schemas.UpdateDeliveryConfigurationRequest, schemas.UpdateDeliveryConfigurationResponse), output: &UpdateDeliveryConfigurationOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -83,19 +112,10 @@ func (c *Client) addOperationUpdateDeliveryConfigurationMiddlewares(stack *middl
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpUpdateDeliveryConfigurationValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "UpdateDeliveryConfiguration"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

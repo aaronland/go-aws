@@ -4,8 +4,9 @@ package lambda
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/schemas"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Deletes the configuration for asynchronous invocation for a function, version,
@@ -52,6 +53,21 @@ type DeleteFunctionEventInvokeConfigInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DeleteFunctionEventInvokeConfigInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DeleteFunctionEventInvokeConfigRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DeleteFunctionEventInvokeConfigInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.FunctionName != nil {
+		s.WriteString(schemas.DeleteFunctionEventInvokeConfigRequest_FunctionName, *v.FunctionName)
+	}
+	if v.Qualifier != nil {
+		s.WriteString(schemas.DeleteFunctionEventInvokeConfigRequest_Qualifier, *v.Qualifier)
+	}
+}
+
 type DeleteFunctionEventInvokeConfigOutput struct {
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
@@ -59,22 +75,29 @@ type DeleteFunctionEventInvokeConfigOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DeleteFunctionEventInvokeConfigOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(nil)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DeleteFunctionEventInvokeConfigOutput) SerializeMembers(s smithy.ShapeSerializer) {
+}
+func (v *DeleteFunctionEventInvokeConfigOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, nil, func(s *smithy.Schema) error {
+		switch s {
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDeleteFunctionEventInvokeConfigMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpDeleteFunctionEventInvokeConfig{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DeleteFunctionEventInvokeConfig, schemas.DeleteFunctionEventInvokeConfigRequest, nil)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpDeleteFunctionEventInvokeConfig{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DeleteFunctionEventInvokeConfig, schemas.DeleteFunctionEventInvokeConfigRequest, nil), output: &DeleteFunctionEventInvokeConfigOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -84,19 +107,10 @@ func (c *Client) addOperationDeleteFunctionEventInvokeConfigMiddlewares(stack *m
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpDeleteFunctionEventInvokeConfigValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DeleteFunctionEventInvokeConfig"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

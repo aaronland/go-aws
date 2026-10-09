@@ -5,9 +5,10 @@ package cloudwatchlogs
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Lists the subscription filters for the specified log group. You can list all
@@ -49,6 +50,27 @@ type DescribeSubscriptionFiltersInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeSubscriptionFiltersInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeSubscriptionFiltersRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeSubscriptionFiltersInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.FilterNamePrefix != nil {
+		s.WriteString(schemas.DescribeSubscriptionFiltersRequest_filterNamePrefix, *v.FilterNamePrefix)
+	}
+	if v.Limit != nil {
+		s.WriteInt32(schemas.DescribeSubscriptionFiltersRequest_limit, *v.Limit)
+	}
+	if v.LogGroupName != nil {
+		s.WriteString(schemas.DescribeSubscriptionFiltersRequest_logGroupName, *v.LogGroupName)
+	}
+	if v.NextToken != nil {
+		s.WriteString(schemas.DescribeSubscriptionFiltersRequest_nextToken, *v.NextToken)
+	}
+}
+
 type DescribeSubscriptionFiltersOutput struct {
 
 	// The token for the next set of items to return. The token expires after 24 hours.
@@ -63,22 +85,38 @@ type DescribeSubscriptionFiltersOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeSubscriptionFiltersOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeSubscriptionFiltersResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeSubscriptionFiltersOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.NextToken != nil {
+		s.WriteString(schemas.DescribeSubscriptionFiltersResponse_nextToken, *v.NextToken)
+	}
+	serializeSubscriptionFilters(s, schemas.DescribeSubscriptionFiltersResponse_subscriptionFilters, v.SubscriptionFilters)
+}
+func (v *DescribeSubscriptionFiltersOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DescribeSubscriptionFiltersResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DescribeSubscriptionFiltersResponse_nextToken:
+			v.NextToken = new(string)
+			return d.ReadString(schemas.DescribeSubscriptionFiltersResponse_nextToken, v.NextToken)
+		case schemas.DescribeSubscriptionFiltersResponse_subscriptionFilters:
+			return deserializeSubscriptionFilters(d, schemas.DescribeSubscriptionFiltersResponse_subscriptionFilters, &v.SubscriptionFilters)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDescribeSubscriptionFiltersMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDescribeSubscriptionFilters{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeSubscriptionFilters, schemas.DescribeSubscriptionFiltersRequest, schemas.DescribeSubscriptionFiltersResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDescribeSubscriptionFilters{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeSubscriptionFilters, schemas.DescribeSubscriptionFiltersRequest, schemas.DescribeSubscriptionFiltersResponse), output: &DescribeSubscriptionFiltersOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -88,19 +126,10 @@ func (c *Client) addOperationDescribeSubscriptionFiltersMiddlewares(stack *middl
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpDescribeSubscriptionFiltersValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DescribeSubscriptionFilters"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

@@ -4,9 +4,10 @@ package ecs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Modifies which task set in a service is the primary task set. Any parameters
@@ -54,6 +55,24 @@ type UpdateServicePrimaryTaskSetInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *UpdateServicePrimaryTaskSetInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.UpdateServicePrimaryTaskSetRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *UpdateServicePrimaryTaskSetInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Cluster != nil {
+		s.WriteString(schemas.UpdateServicePrimaryTaskSetRequest_cluster, *v.Cluster)
+	}
+	if v.PrimaryTaskSet != nil {
+		s.WriteString(schemas.UpdateServicePrimaryTaskSetRequest_primaryTaskSet, *v.PrimaryTaskSet)
+	}
+	if v.Service != nil {
+		s.WriteString(schemas.UpdateServicePrimaryTaskSetRequest_service, *v.Service)
+	}
+}
+
 type UpdateServicePrimaryTaskSetOutput struct {
 
 	// The details about the task set.
@@ -65,22 +84,37 @@ type UpdateServicePrimaryTaskSetOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *UpdateServicePrimaryTaskSetOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.UpdateServicePrimaryTaskSetResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *UpdateServicePrimaryTaskSetOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.TaskSet != nil {
+		s.WriteStruct(schemas.UpdateServicePrimaryTaskSetResponse_taskSet)
+		v.TaskSet.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *UpdateServicePrimaryTaskSetOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.UpdateServicePrimaryTaskSetResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.UpdateServicePrimaryTaskSetResponse_taskSet:
+			v.TaskSet = &types.TaskSet{}
+			return v.TaskSet.Deserialize(d)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationUpdateServicePrimaryTaskSetMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpUpdateServicePrimaryTaskSet{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.UpdateServicePrimaryTaskSet, schemas.UpdateServicePrimaryTaskSetRequest, schemas.UpdateServicePrimaryTaskSetResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpUpdateServicePrimaryTaskSet{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.UpdateServicePrimaryTaskSet, schemas.UpdateServicePrimaryTaskSetRequest, schemas.UpdateServicePrimaryTaskSetResponse), output: &UpdateServicePrimaryTaskSetOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -90,19 +124,10 @@ func (c *Client) addOperationUpdateServicePrimaryTaskSetMiddlewares(stack *middl
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpUpdateServicePrimaryTaskSetValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "UpdateServicePrimaryTaskSet"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

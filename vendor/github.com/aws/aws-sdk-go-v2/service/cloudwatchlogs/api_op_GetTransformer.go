@@ -4,9 +4,10 @@ package cloudwatchlogs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Returns the information about the log transformer associated with this log
@@ -43,6 +44,18 @@ type GetTransformerInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetTransformerInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetTransformerRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetTransformerInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.LogGroupIdentifier != nil {
+		s.WriteString(schemas.GetTransformerRequest_logGroupIdentifier, *v.LogGroupIdentifier)
+	}
+}
+
 type GetTransformerOutput struct {
 
 	// The creation time of the transformer, expressed as the number of milliseconds
@@ -65,22 +78,50 @@ type GetTransformerOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetTransformerOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetTransformerResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetTransformerOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CreationTime != nil {
+		s.WriteInt64(schemas.GetTransformerResponse_creationTime, *v.CreationTime)
+	}
+	if v.LastModifiedTime != nil {
+		s.WriteInt64(schemas.GetTransformerResponse_lastModifiedTime, *v.LastModifiedTime)
+	}
+	if v.LogGroupIdentifier != nil {
+		s.WriteString(schemas.GetTransformerResponse_logGroupIdentifier, *v.LogGroupIdentifier)
+	}
+	serializeProcessors(s, schemas.GetTransformerResponse_transformerConfig, v.TransformerConfig)
+}
+func (v *GetTransformerOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GetTransformerResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GetTransformerResponse_creationTime:
+			v.CreationTime = new(int64)
+			return d.ReadInt64(schemas.GetTransformerResponse_creationTime, v.CreationTime)
+		case schemas.GetTransformerResponse_lastModifiedTime:
+			v.LastModifiedTime = new(int64)
+			return d.ReadInt64(schemas.GetTransformerResponse_lastModifiedTime, v.LastModifiedTime)
+		case schemas.GetTransformerResponse_logGroupIdentifier:
+			v.LogGroupIdentifier = new(string)
+			return d.ReadString(schemas.GetTransformerResponse_logGroupIdentifier, v.LogGroupIdentifier)
+		case schemas.GetTransformerResponse_transformerConfig:
+			return deserializeProcessors(d, schemas.GetTransformerResponse_transformerConfig, &v.TransformerConfig)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationGetTransformerMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetTransformer{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetTransformer, schemas.GetTransformerRequest, schemas.GetTransformerResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpGetTransformer{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetTransformer, schemas.GetTransformerRequest, schemas.GetTransformerResponse), output: &GetTransformerOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -90,19 +131,10 @@ func (c *Client) addOperationGetTransformerMiddlewares(stack *middleware.Stack, 
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpGetTransformerValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "GetTransformer"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

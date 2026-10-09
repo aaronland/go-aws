@@ -4,9 +4,10 @@ package lambda
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Sets your function's [recursive loop detection] configuration.
@@ -83,6 +84,21 @@ type PutFunctionRecursionConfigInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutFunctionRecursionConfigInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutFunctionRecursionConfigRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutFunctionRecursionConfigInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.FunctionName != nil {
+		s.WriteString(schemas.PutFunctionRecursionConfigRequest_FunctionName, *v.FunctionName)
+	}
+	if v.RecursiveLoop != "" {
+		s.WriteString(schemas.PutFunctionRecursionConfigRequest_RecursiveLoop, string(v.RecursiveLoop))
+	}
+}
+
 type PutFunctionRecursionConfigOutput struct {
 
 	// The status of your function's recursive loop detection configuration.
@@ -101,22 +117,39 @@ type PutFunctionRecursionConfigOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutFunctionRecursionConfigOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutFunctionRecursionConfigResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutFunctionRecursionConfigOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.RecursiveLoop != "" {
+		s.WriteString(schemas.PutFunctionRecursionConfigResponse_RecursiveLoop, string(v.RecursiveLoop))
+	}
+}
+func (v *PutFunctionRecursionConfigOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.PutFunctionRecursionConfigResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.PutFunctionRecursionConfigResponse_RecursiveLoop:
+			var ev string
+			if err := d.ReadString(schemas.PutFunctionRecursionConfigResponse_RecursiveLoop, &ev); err != nil {
+				return err
+			}
+			v.RecursiveLoop = types.RecursiveLoop(ev)
+			return nil
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationPutFunctionRecursionConfigMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpPutFunctionRecursionConfig{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutFunctionRecursionConfig, schemas.PutFunctionRecursionConfigRequest, schemas.PutFunctionRecursionConfigResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpPutFunctionRecursionConfig{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutFunctionRecursionConfig, schemas.PutFunctionRecursionConfigRequest, schemas.PutFunctionRecursionConfigResponse), output: &PutFunctionRecursionConfigOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -126,19 +159,10 @@ func (c *Client) addOperationPutFunctionRecursionConfigMiddlewares(stack *middle
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpPutFunctionRecursionConfigValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "PutFunctionRecursionConfig"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

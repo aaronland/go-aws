@@ -1080,6 +1080,25 @@ func (ExecuteCommandLogging) Values() []ExecuteCommandLogging {
 	}
 }
 
+type ExpressCpuArchitecture string
+
+// Enum values for ExpressCpuArchitecture
+const (
+	ExpressCpuArchitectureX8664 ExpressCpuArchitecture = "X86_64"
+	ExpressCpuArchitectureArm64 ExpressCpuArchitecture = "ARM64"
+)
+
+// Values returns all known values for ExpressCpuArchitecture. Note that this can
+// be expanded in the future, and so it is only as up to date as the client.
+//
+// The ordering of this slice is not guaranteed to be stable across updates.
+func (ExpressCpuArchitecture) Values() []ExpressCpuArchitecture {
+	return []ExpressCpuArchitecture{
+		"X86_64",
+		"ARM64",
+	}
+}
+
 type ExpressGatewayServiceInclude string
 
 // Enum values for ExpressGatewayServiceInclude
@@ -1231,6 +1250,7 @@ const (
 	InstanceHealthCheckTypeContainerRuntime   InstanceHealthCheckType = "CONTAINER_RUNTIME"
 	InstanceHealthCheckTypeAcceleratedCompute InstanceHealthCheckType = "ACCELERATED_COMPUTE"
 	InstanceHealthCheckTypeDaemon             InstanceHealthCheckType = "DAEMON"
+	InstanceHealthCheckTypeAgentConnectivity  InstanceHealthCheckType = "AGENT_CONNECTIVITY"
 )
 
 // Values returns all known values for InstanceHealthCheckType. Note that this can
@@ -1242,6 +1262,7 @@ func (InstanceHealthCheckType) Values() []InstanceHealthCheckType {
 		"CONTAINER_RUNTIME",
 		"ACCELERATED_COMPUTE",
 		"DAEMON",
+		"AGENT_CONNECTIVITY",
 	}
 }
 
@@ -1918,6 +1939,25 @@ func (ServiceField) Values() []ServiceField {
 	}
 }
 
+type ServiceRevisionCleanup string
+
+// Enum values for ServiceRevisionCleanup
+const (
+	ServiceRevisionCleanupBlocking ServiceRevisionCleanup = "BLOCKING"
+	ServiceRevisionCleanupDeferred ServiceRevisionCleanup = "DEFERRED"
+)
+
+// Values returns all known values for ServiceRevisionCleanup. Note that this can
+// be expanded in the future, and so it is only as up to date as the client.
+//
+// The ordering of this slice is not guaranteed to be stable across updates.
+func (ServiceRevisionCleanup) Values() []ServiceRevisionCleanup {
+	return []ServiceRevisionCleanup{
+		"BLOCKING",
+		"DEFERRED",
+	}
+}
+
 type SettingName string
 
 // Enum values for SettingName
@@ -2193,6 +2233,7 @@ const (
 	TaskStopCodeServiceSchedulerInitiated TaskStopCode = "ServiceSchedulerInitiated"
 	TaskStopCodeSpotInterruption          TaskStopCode = "SpotInterruption"
 	TaskStopCodeTerminationNotice         TaskStopCode = "TerminationNotice"
+	TaskStopCodeInfrastructureHealth      TaskStopCode = "InfrastructureHealth"
 )
 
 // Values returns all known values for TaskStopCode. Note that this can be
@@ -2207,6 +2248,7 @@ func (TaskStopCode) Values() []TaskStopCode {
 		"ServiceSchedulerInitiated",
 		"SpotInterruption",
 		"TerminationNotice",
+		"InfrastructureHealth",
 	}
 }
 

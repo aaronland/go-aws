@@ -4,8 +4,9 @@ package lambda
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/schemas"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Sends a heartbeat signal for a long-running callback operation to prevent
@@ -36,6 +37,18 @@ type SendDurableExecutionCallbackHeartbeatInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *SendDurableExecutionCallbackHeartbeatInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SendDurableExecutionCallbackHeartbeatRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SendDurableExecutionCallbackHeartbeatInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CallbackId != nil {
+		s.WriteString(schemas.SendDurableExecutionCallbackHeartbeatRequest_CallbackId, *v.CallbackId)
+	}
+}
+
 type SendDurableExecutionCallbackHeartbeatOutput struct {
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
@@ -43,22 +56,29 @@ type SendDurableExecutionCallbackHeartbeatOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *SendDurableExecutionCallbackHeartbeatOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.SendDurableExecutionCallbackHeartbeatResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *SendDurableExecutionCallbackHeartbeatOutput) SerializeMembers(s smithy.ShapeSerializer) {
+}
+func (v *SendDurableExecutionCallbackHeartbeatOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.SendDurableExecutionCallbackHeartbeatResponse, func(s *smithy.Schema) error {
+		switch s {
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationSendDurableExecutionCallbackHeartbeatMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpSendDurableExecutionCallbackHeartbeat{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.SendDurableExecutionCallbackHeartbeat, schemas.SendDurableExecutionCallbackHeartbeatRequest, schemas.SendDurableExecutionCallbackHeartbeatResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpSendDurableExecutionCallbackHeartbeat{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.SendDurableExecutionCallbackHeartbeat, schemas.SendDurableExecutionCallbackHeartbeatRequest, schemas.SendDurableExecutionCallbackHeartbeatResponse), output: &SendDurableExecutionCallbackHeartbeatOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -68,19 +88,10 @@ func (c *Client) addOperationSendDurableExecutionCallbackHeartbeatMiddlewares(st
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpSendDurableExecutionCallbackHeartbeatValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "SendDurableExecutionCallbackHeartbeat"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

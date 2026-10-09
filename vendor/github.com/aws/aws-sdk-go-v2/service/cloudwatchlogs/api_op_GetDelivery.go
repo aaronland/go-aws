@@ -4,9 +4,10 @@ package cloudwatchlogs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Returns complete information about one logical delivery. A delivery is a
@@ -49,6 +50,18 @@ type GetDeliveryInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetDeliveryInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetDeliveryRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetDeliveryInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Id != nil {
+		s.WriteString(schemas.GetDeliveryRequest_id, *v.Id)
+	}
+}
+
 type GetDeliveryOutput struct {
 
 	// A structure that contains information about the delivery.
@@ -60,22 +73,37 @@ type GetDeliveryOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetDeliveryOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetDeliveryResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetDeliveryOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Delivery != nil {
+		s.WriteStruct(schemas.GetDeliveryResponse_delivery)
+		v.Delivery.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *GetDeliveryOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GetDeliveryResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GetDeliveryResponse_delivery:
+			v.Delivery = &types.Delivery{}
+			return v.Delivery.Deserialize(d)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationGetDeliveryMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetDelivery{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetDelivery, schemas.GetDeliveryRequest, schemas.GetDeliveryResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpGetDelivery{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetDelivery, schemas.GetDeliveryRequest, schemas.GetDeliveryResponse), output: &GetDeliveryOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -85,19 +113,10 @@ func (c *Client) addOperationGetDeliveryMiddlewares(stack *middleware.Stack, opt
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpGetDeliveryValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "GetDelivery"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

@@ -5,9 +5,10 @@ package cloudwatchlogs
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Creates or updates a query definition for CloudWatch Logs Insights. For more
@@ -100,6 +101,32 @@ type PutQueryDefinitionInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutQueryDefinitionInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutQueryDefinitionRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutQueryDefinitionInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ClientToken != nil {
+		s.WriteString(schemas.PutQueryDefinitionRequest_clientToken, *v.ClientToken)
+	}
+	serializeLogGroupNames(s, schemas.PutQueryDefinitionRequest_logGroupNames, v.LogGroupNames)
+	if v.Name != nil {
+		s.WriteString(schemas.PutQueryDefinitionRequest_name, *v.Name)
+	}
+	serializeQueryParameterList(s, schemas.PutQueryDefinitionRequest_parameters, v.Parameters)
+	if v.QueryDefinitionId != nil {
+		s.WriteString(schemas.PutQueryDefinitionRequest_queryDefinitionId, *v.QueryDefinitionId)
+	}
+	if v.QueryLanguage != "" {
+		s.WriteString(schemas.PutQueryDefinitionRequest_queryLanguage, string(v.QueryLanguage))
+	}
+	if v.QueryString != nil {
+		s.WriteString(schemas.PutQueryDefinitionRequest_queryString, *v.QueryString)
+	}
+}
+
 type PutQueryDefinitionOutput struct {
 
 	// The ID of the query definition.
@@ -111,22 +138,35 @@ type PutQueryDefinitionOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutQueryDefinitionOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutQueryDefinitionResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutQueryDefinitionOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.QueryDefinitionId != nil {
+		s.WriteString(schemas.PutQueryDefinitionResponse_queryDefinitionId, *v.QueryDefinitionId)
+	}
+}
+func (v *PutQueryDefinitionOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.PutQueryDefinitionResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.PutQueryDefinitionResponse_queryDefinitionId:
+			v.QueryDefinitionId = new(string)
+			return d.ReadString(schemas.PutQueryDefinitionResponse_queryDefinitionId, v.QueryDefinitionId)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationPutQueryDefinitionMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpPutQueryDefinition{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutQueryDefinition, schemas.PutQueryDefinitionRequest, schemas.PutQueryDefinitionResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpPutQueryDefinition{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutQueryDefinition, schemas.PutQueryDefinitionRequest, schemas.PutQueryDefinitionResponse), output: &PutQueryDefinitionOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -136,12 +176,6 @@ func (c *Client) addOperationPutQueryDefinitionMiddlewares(stack *middleware.Sta
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
@@ -149,9 +183,6 @@ func (c *Client) addOperationPutQueryDefinitionMiddlewares(stack *middleware.Sta
 		return err
 	}
 	if err = addOpPutQueryDefinitionValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "PutQueryDefinition"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

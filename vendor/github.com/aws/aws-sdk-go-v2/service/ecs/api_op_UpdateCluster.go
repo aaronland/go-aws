@@ -4,9 +4,10 @@ package ecs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Updates the cluster.
@@ -59,6 +60,29 @@ type UpdateClusterInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *UpdateClusterInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.UpdateClusterRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *UpdateClusterInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Cluster != nil {
+		s.WriteString(schemas.UpdateClusterRequest_cluster, *v.Cluster)
+	}
+	if v.Configuration != nil {
+		s.WriteStruct(schemas.UpdateClusterRequest_configuration)
+		v.Configuration.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.ServiceConnectDefaults != nil {
+		s.WriteStruct(schemas.UpdateClusterRequest_serviceConnectDefaults)
+		v.ServiceConnectDefaults.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	serializeClusterSettings(s, schemas.UpdateClusterRequest_settings, v.Settings)
+}
+
 type UpdateClusterOutput struct {
 
 	// Details about the cluster.
@@ -70,22 +94,37 @@ type UpdateClusterOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *UpdateClusterOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.UpdateClusterResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *UpdateClusterOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Cluster != nil {
+		s.WriteStruct(schemas.UpdateClusterResponse_cluster)
+		v.Cluster.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *UpdateClusterOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.UpdateClusterResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.UpdateClusterResponse_cluster:
+			v.Cluster = &types.Cluster{}
+			return v.Cluster.Deserialize(d)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationUpdateClusterMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpUpdateCluster{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.UpdateCluster, schemas.UpdateClusterRequest, schemas.UpdateClusterResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpUpdateCluster{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.UpdateCluster, schemas.UpdateClusterRequest, schemas.UpdateClusterResponse), output: &UpdateClusterOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -95,19 +134,10 @@ func (c *Client) addOperationUpdateClusterMiddlewares(stack *middleware.Stack, o
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpUpdateClusterValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "UpdateCluster"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

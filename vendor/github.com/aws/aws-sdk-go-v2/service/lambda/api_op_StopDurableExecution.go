@@ -4,9 +4,10 @@ package lambda
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"time"
 )
 
@@ -42,6 +43,23 @@ type StopDurableExecutionInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *StopDurableExecutionInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.StopDurableExecutionRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *StopDurableExecutionInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DurableExecutionArn != nil {
+		s.WriteString(schemas.StopDurableExecutionRequest_DurableExecutionArn, *v.DurableExecutionArn)
+	}
+	if v.Error != nil {
+		s.WriteStruct(schemas.StopDurableExecutionRequest_Error)
+		v.Error.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+
 type StopDurableExecutionOutput struct {
 
 	// The timestamp when the execution was stopped (ISO 8601 format).
@@ -55,22 +73,35 @@ type StopDurableExecutionOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *StopDurableExecutionOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.StopDurableExecutionResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *StopDurableExecutionOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.StopTimestamp != nil {
+		s.WriteTime(schemas.StopDurableExecutionResponse_StopTimestamp, *v.StopTimestamp)
+	}
+}
+func (v *StopDurableExecutionOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.StopDurableExecutionResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.StopDurableExecutionResponse_StopTimestamp:
+			v.StopTimestamp = new(time.Time)
+			return d.ReadTime(schemas.StopDurableExecutionResponse_StopTimestamp, v.StopTimestamp)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationStopDurableExecutionMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpStopDurableExecution{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.StopDurableExecution, schemas.StopDurableExecutionRequest, schemas.StopDurableExecutionResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpStopDurableExecution{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.StopDurableExecution, schemas.StopDurableExecutionRequest, schemas.StopDurableExecutionResponse), output: &StopDurableExecutionOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -80,19 +111,10 @@ func (c *Client) addOperationStopDurableExecutionMiddlewares(stack *middleware.S
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpStopDurableExecutionValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "StopDurableExecution"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

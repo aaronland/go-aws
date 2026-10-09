@@ -4,9 +4,10 @@ package cloudwatchlogs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Cancels an active import task and stops importing data from the CloudTrail Lake
@@ -36,6 +37,18 @@ type CancelImportTaskInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *CancelImportTaskInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.CancelImportTaskRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *CancelImportTaskInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ImportId != nil {
+		s.WriteString(schemas.CancelImportTaskRequest_importId, *v.ImportId)
+	}
+}
+
 type CancelImportTaskOutput struct {
 
 	// The timestamp when the import task was created, expressed as the number of
@@ -61,22 +74,65 @@ type CancelImportTaskOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *CancelImportTaskOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.CancelImportTaskResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *CancelImportTaskOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CreationTime != nil {
+		s.WriteInt64(schemas.CancelImportTaskResponse_creationTime, *v.CreationTime)
+	}
+	if v.ImportId != nil {
+		s.WriteString(schemas.CancelImportTaskResponse_importId, *v.ImportId)
+	}
+	if v.ImportStatistics != nil {
+		s.WriteStruct(schemas.CancelImportTaskResponse_importStatistics)
+		v.ImportStatistics.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.ImportStatus != "" {
+		s.WriteString(schemas.CancelImportTaskResponse_importStatus, string(v.ImportStatus))
+	}
+	if v.LastUpdatedTime != nil {
+		s.WriteInt64(schemas.CancelImportTaskResponse_lastUpdatedTime, *v.LastUpdatedTime)
+	}
+}
+func (v *CancelImportTaskOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.CancelImportTaskResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.CancelImportTaskResponse_creationTime:
+			v.CreationTime = new(int64)
+			return d.ReadInt64(schemas.CancelImportTaskResponse_creationTime, v.CreationTime)
+		case schemas.CancelImportTaskResponse_importId:
+			v.ImportId = new(string)
+			return d.ReadString(schemas.CancelImportTaskResponse_importId, v.ImportId)
+		case schemas.CancelImportTaskResponse_importStatistics:
+			v.ImportStatistics = &types.ImportStatistics{}
+			return v.ImportStatistics.Deserialize(d)
+		case schemas.CancelImportTaskResponse_importStatus:
+			var ev string
+			if err := d.ReadString(schemas.CancelImportTaskResponse_importStatus, &ev); err != nil {
+				return err
+			}
+			v.ImportStatus = types.ImportStatus(ev)
+			return nil
+		case schemas.CancelImportTaskResponse_lastUpdatedTime:
+			v.LastUpdatedTime = new(int64)
+			return d.ReadInt64(schemas.CancelImportTaskResponse_lastUpdatedTime, v.LastUpdatedTime)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationCancelImportTaskMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpCancelImportTask{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.CancelImportTask, schemas.CancelImportTaskRequest, schemas.CancelImportTaskResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpCancelImportTask{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.CancelImportTask, schemas.CancelImportTaskRequest, schemas.CancelImportTaskResponse), output: &CancelImportTaskOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -86,19 +142,10 @@ func (c *Client) addOperationCancelImportTaskMiddlewares(stack *middleware.Stack
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpCancelImportTaskValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "CancelImportTask"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

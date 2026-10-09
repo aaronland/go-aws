@@ -4,9 +4,10 @@ package cloudwatchlogs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Starts a query of one or more log groups or data sources using CloudWatch Logs
@@ -149,6 +150,35 @@ type StartQueryInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *StartQueryInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.StartQueryRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *StartQueryInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.EndTime != nil {
+		s.WriteInt64(schemas.StartQueryRequest_endTime, *v.EndTime)
+	}
+	if v.Limit != nil {
+		s.WriteInt32(schemas.StartQueryRequest_limit, *v.Limit)
+	}
+	serializeLogGroupIdentifiers(s, schemas.StartQueryRequest_logGroupIdentifiers, v.LogGroupIdentifiers)
+	if v.LogGroupName != nil {
+		s.WriteString(schemas.StartQueryRequest_logGroupName, *v.LogGroupName)
+	}
+	serializeLogGroupNames(s, schemas.StartQueryRequest_logGroupNames, v.LogGroupNames)
+	if v.QueryLanguage != "" {
+		s.WriteString(schemas.StartQueryRequest_queryLanguage, string(v.QueryLanguage))
+	}
+	if v.QueryString != nil {
+		s.WriteString(schemas.StartQueryRequest_queryString, *v.QueryString)
+	}
+	if v.StartTime != nil {
+		s.WriteInt64(schemas.StartQueryRequest_startTime, *v.StartTime)
+	}
+}
+
 type StartQueryOutput struct {
 
 	// The unique ID of the query.
@@ -160,22 +190,35 @@ type StartQueryOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *StartQueryOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.StartQueryResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *StartQueryOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.QueryId != nil {
+		s.WriteString(schemas.StartQueryResponse_queryId, *v.QueryId)
+	}
+}
+func (v *StartQueryOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.StartQueryResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.StartQueryResponse_queryId:
+			v.QueryId = new(string)
+			return d.ReadString(schemas.StartQueryResponse_queryId, v.QueryId)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationStartQueryMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpStartQuery{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.StartQuery, schemas.StartQueryRequest, schemas.StartQueryResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpStartQuery{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.StartQuery, schemas.StartQueryRequest, schemas.StartQueryResponse), output: &StartQueryOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -185,19 +228,10 @@ func (c *Client) addOperationStartQueryMiddlewares(stack *middleware.Stack, opti
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpStartQueryValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "StartQuery"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

@@ -4,9 +4,10 @@ package cloudwatchlogs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // This operation returns a paginated list of your saved CloudWatch Logs Insights
@@ -51,6 +52,27 @@ type DescribeQueryDefinitionsInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeQueryDefinitionsInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeQueryDefinitionsRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeQueryDefinitionsInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.MaxResults != nil {
+		s.WriteInt32(schemas.DescribeQueryDefinitionsRequest_maxResults, *v.MaxResults)
+	}
+	if v.NextToken != nil {
+		s.WriteString(schemas.DescribeQueryDefinitionsRequest_nextToken, *v.NextToken)
+	}
+	if v.QueryDefinitionNamePrefix != nil {
+		s.WriteString(schemas.DescribeQueryDefinitionsRequest_queryDefinitionNamePrefix, *v.QueryDefinitionNamePrefix)
+	}
+	if v.QueryLanguage != "" {
+		s.WriteString(schemas.DescribeQueryDefinitionsRequest_queryLanguage, string(v.QueryLanguage))
+	}
+}
+
 type DescribeQueryDefinitionsOutput struct {
 
 	// The token for the next set of items to return. The token expires after 24 hours.
@@ -65,22 +87,38 @@ type DescribeQueryDefinitionsOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeQueryDefinitionsOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeQueryDefinitionsResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeQueryDefinitionsOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.NextToken != nil {
+		s.WriteString(schemas.DescribeQueryDefinitionsResponse_nextToken, *v.NextToken)
+	}
+	serializeQueryDefinitionList(s, schemas.DescribeQueryDefinitionsResponse_queryDefinitions, v.QueryDefinitions)
+}
+func (v *DescribeQueryDefinitionsOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DescribeQueryDefinitionsResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DescribeQueryDefinitionsResponse_nextToken:
+			v.NextToken = new(string)
+			return d.ReadString(schemas.DescribeQueryDefinitionsResponse_nextToken, v.NextToken)
+		case schemas.DescribeQueryDefinitionsResponse_queryDefinitions:
+			return deserializeQueryDefinitionList(d, schemas.DescribeQueryDefinitionsResponse_queryDefinitions, &v.QueryDefinitions)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDescribeQueryDefinitionsMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDescribeQueryDefinitions{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeQueryDefinitions, schemas.DescribeQueryDefinitionsRequest, schemas.DescribeQueryDefinitionsResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDescribeQueryDefinitions{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeQueryDefinitions, schemas.DescribeQueryDefinitionsRequest, schemas.DescribeQueryDefinitionsResponse), output: &DescribeQueryDefinitionsOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -90,16 +128,7 @@ func (c *Client) addOperationDescribeQueryDefinitionsMiddlewares(stack *middlewa
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DescribeQueryDefinitions"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

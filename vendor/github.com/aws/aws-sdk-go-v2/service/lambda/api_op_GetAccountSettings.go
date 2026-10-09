@@ -4,9 +4,10 @@ package lambda
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Retrieves details about your account's [limits] and usage in an Amazon Web Services
@@ -32,6 +33,15 @@ type GetAccountSettingsInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetAccountSettingsInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetAccountSettingsRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetAccountSettingsInput) SerializeMembers(s smithy.ShapeSerializer) {
+}
+
 type GetAccountSettingsOutput struct {
 
 	// Limits that are related to concurrency and code storage.
@@ -46,22 +56,45 @@ type GetAccountSettingsOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetAccountSettingsOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetAccountSettingsResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetAccountSettingsOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.AccountLimit != nil {
+		s.WriteStruct(schemas.GetAccountSettingsResponse_AccountLimit)
+		v.AccountLimit.SerializeMembers(s)
+		s.CloseStruct()
+	}
+	if v.AccountUsage != nil {
+		s.WriteStruct(schemas.GetAccountSettingsResponse_AccountUsage)
+		v.AccountUsage.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *GetAccountSettingsOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GetAccountSettingsResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GetAccountSettingsResponse_AccountLimit:
+			v.AccountLimit = &types.AccountLimit{}
+			return v.AccountLimit.Deserialize(d)
+		case schemas.GetAccountSettingsResponse_AccountUsage:
+			v.AccountUsage = &types.AccountUsage{}
+			return v.AccountUsage.Deserialize(d)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationGetAccountSettingsMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpGetAccountSettings{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetAccountSettings, schemas.GetAccountSettingsRequest, schemas.GetAccountSettingsResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpGetAccountSettings{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetAccountSettings, schemas.GetAccountSettingsRequest, schemas.GetAccountSettingsResponse), output: &GetAccountSettingsOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -71,16 +104,7 @@ func (c *Client) addOperationGetAccountSettingsMiddlewares(stack *middleware.Sta
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "GetAccountSettings"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

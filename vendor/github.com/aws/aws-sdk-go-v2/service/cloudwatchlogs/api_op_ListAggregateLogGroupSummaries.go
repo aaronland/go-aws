@@ -5,9 +5,10 @@ package cloudwatchlogs
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Returns an aggregate summary of all log groups in the Region grouped by
@@ -97,6 +98,35 @@ type ListAggregateLogGroupSummariesInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ListAggregateLogGroupSummariesInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ListAggregateLogGroupSummariesRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ListAggregateLogGroupSummariesInput) SerializeMembers(s smithy.ShapeSerializer) {
+	serializeAccountIds(s, schemas.ListAggregateLogGroupSummariesRequest_accountIdentifiers, v.AccountIdentifiers)
+	serializeDataSourceFilters(s, schemas.ListAggregateLogGroupSummariesRequest_dataSources, v.DataSources)
+	if v.GroupBy != "" {
+		s.WriteString(schemas.ListAggregateLogGroupSummariesRequest_groupBy, string(v.GroupBy))
+	}
+	if v.IncludeLinkedAccounts != nil {
+		s.WriteBool(schemas.ListAggregateLogGroupSummariesRequest_includeLinkedAccounts, *v.IncludeLinkedAccounts)
+	}
+	if v.Limit != nil {
+		s.WriteInt32(schemas.ListAggregateLogGroupSummariesRequest_limit, *v.Limit)
+	}
+	if v.LogGroupClass != "" {
+		s.WriteString(schemas.ListAggregateLogGroupSummariesRequest_logGroupClass, string(v.LogGroupClass))
+	}
+	if v.LogGroupNamePattern != nil {
+		s.WriteString(schemas.ListAggregateLogGroupSummariesRequest_logGroupNamePattern, *v.LogGroupNamePattern)
+	}
+	if v.NextToken != nil {
+		s.WriteString(schemas.ListAggregateLogGroupSummariesRequest_nextToken, *v.NextToken)
+	}
+}
+
 type ListAggregateLogGroupSummariesOutput struct {
 
 	// The list of aggregate log group summaries grouped by the specified data source
@@ -112,22 +142,38 @@ type ListAggregateLogGroupSummariesOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *ListAggregateLogGroupSummariesOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.ListAggregateLogGroupSummariesResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *ListAggregateLogGroupSummariesOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	serializeAggregateLogGroupSummaries(s, schemas.ListAggregateLogGroupSummariesResponse_aggregateLogGroupSummaries, v.AggregateLogGroupSummaries)
+	if v.NextToken != nil {
+		s.WriteString(schemas.ListAggregateLogGroupSummariesResponse_nextToken, *v.NextToken)
+	}
+}
+func (v *ListAggregateLogGroupSummariesOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.ListAggregateLogGroupSummariesResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.ListAggregateLogGroupSummariesResponse_aggregateLogGroupSummaries:
+			return deserializeAggregateLogGroupSummaries(d, schemas.ListAggregateLogGroupSummariesResponse_aggregateLogGroupSummaries, &v.AggregateLogGroupSummaries)
+		case schemas.ListAggregateLogGroupSummariesResponse_nextToken:
+			v.NextToken = new(string)
+			return d.ReadString(schemas.ListAggregateLogGroupSummariesResponse_nextToken, v.NextToken)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationListAggregateLogGroupSummariesMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpListAggregateLogGroupSummaries{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.ListAggregateLogGroupSummaries, schemas.ListAggregateLogGroupSummariesRequest, schemas.ListAggregateLogGroupSummariesResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpListAggregateLogGroupSummaries{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.ListAggregateLogGroupSummaries, schemas.ListAggregateLogGroupSummariesRequest, schemas.ListAggregateLogGroupSummariesResponse), output: &ListAggregateLogGroupSummariesOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -137,19 +183,10 @@ func (c *Client) addOperationListAggregateLogGroupSummariesMiddlewares(stack *mi
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpListAggregateLogGroupSummariesValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "ListAggregateLogGroupSummaries"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

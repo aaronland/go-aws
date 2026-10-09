@@ -4,9 +4,10 @@ package cloudwatchlogs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Tests the filter pattern of a metric filter against a sample of log event
@@ -45,6 +46,19 @@ type TestMetricFilterInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *TestMetricFilterInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.TestMetricFilterRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *TestMetricFilterInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.FilterPattern != nil {
+		s.WriteString(schemas.TestMetricFilterRequest_filterPattern, *v.FilterPattern)
+	}
+	serializeTestEventMessages(s, schemas.TestMetricFilterRequest_logEventMessages, v.LogEventMessages)
+}
+
 type TestMetricFilterOutput struct {
 
 	// The matched events.
@@ -56,22 +70,32 @@ type TestMetricFilterOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *TestMetricFilterOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.TestMetricFilterResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *TestMetricFilterOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	serializeMetricFilterMatches(s, schemas.TestMetricFilterResponse_matches, v.Matches)
+}
+func (v *TestMetricFilterOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.TestMetricFilterResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.TestMetricFilterResponse_matches:
+			return deserializeMetricFilterMatches(d, schemas.TestMetricFilterResponse_matches, &v.Matches)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationTestMetricFilterMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpTestMetricFilter{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.TestMetricFilter, schemas.TestMetricFilterRequest, schemas.TestMetricFilterResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpTestMetricFilter{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.TestMetricFilter, schemas.TestMetricFilterRequest, schemas.TestMetricFilterResponse), output: &TestMetricFilterOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -81,19 +105,10 @@ func (c *Client) addOperationTestMetricFilterMiddlewares(stack *middleware.Stack
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpTestMetricFilterValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "TestMetricFilter"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

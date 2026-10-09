@@ -4,9 +4,10 @@ package lambda
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Deletes a capacity provider. You cannot delete a capacity provider that is
@@ -36,6 +37,18 @@ type DeleteCapacityProviderInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DeleteCapacityProviderInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DeleteCapacityProviderRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DeleteCapacityProviderInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CapacityProviderName != nil {
+		s.WriteString(schemas.DeleteCapacityProviderRequest_CapacityProviderName, *v.CapacityProviderName)
+	}
+}
+
 type DeleteCapacityProviderOutput struct {
 
 	// Information about the deleted capacity provider.
@@ -49,22 +62,37 @@ type DeleteCapacityProviderOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DeleteCapacityProviderOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DeleteCapacityProviderResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DeleteCapacityProviderOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CapacityProvider != nil {
+		s.WriteStruct(schemas.DeleteCapacityProviderResponse_CapacityProvider)
+		v.CapacityProvider.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *DeleteCapacityProviderOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DeleteCapacityProviderResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DeleteCapacityProviderResponse_CapacityProvider:
+			v.CapacityProvider = &types.CapacityProvider{}
+			return v.CapacityProvider.Deserialize(d)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDeleteCapacityProviderMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpDeleteCapacityProvider{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DeleteCapacityProvider, schemas.DeleteCapacityProviderRequest, schemas.DeleteCapacityProviderResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpDeleteCapacityProvider{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DeleteCapacityProvider, schemas.DeleteCapacityProviderRequest, schemas.DeleteCapacityProviderResponse), output: &DeleteCapacityProviderOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -74,19 +102,10 @@ func (c *Client) addOperationDeleteCapacityProviderMiddlewares(stack *middleware
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpDeleteCapacityProviderValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DeleteCapacityProvider"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

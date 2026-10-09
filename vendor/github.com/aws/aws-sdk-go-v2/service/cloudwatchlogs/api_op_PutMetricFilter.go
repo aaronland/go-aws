@@ -4,9 +4,10 @@ package cloudwatchlogs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Creates or updates a metric filter and associates it with the specified log
@@ -103,6 +104,32 @@ type PutMetricFilterInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutMetricFilterInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.PutMetricFilterRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutMetricFilterInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.ApplyOnTransformedLogs != false {
+		s.WriteBool(schemas.PutMetricFilterRequest_applyOnTransformedLogs, v.ApplyOnTransformedLogs)
+	}
+	serializeEmitSystemFields(s, schemas.PutMetricFilterRequest_emitSystemFieldDimensions, v.EmitSystemFieldDimensions)
+	if v.FieldSelectionCriteria != nil {
+		s.WriteString(schemas.PutMetricFilterRequest_fieldSelectionCriteria, *v.FieldSelectionCriteria)
+	}
+	if v.FilterName != nil {
+		s.WriteString(schemas.PutMetricFilterRequest_filterName, *v.FilterName)
+	}
+	if v.FilterPattern != nil {
+		s.WriteString(schemas.PutMetricFilterRequest_filterPattern, *v.FilterPattern)
+	}
+	if v.LogGroupName != nil {
+		s.WriteString(schemas.PutMetricFilterRequest_logGroupName, *v.LogGroupName)
+	}
+	serializeMetricTransformations(s, schemas.PutMetricFilterRequest_metricTransformations, v.MetricTransformations)
+}
+
 type PutMetricFilterOutput struct {
 	// Metadata pertaining to the operation's result.
 	ResultMetadata middleware.Metadata
@@ -110,22 +137,29 @@ type PutMetricFilterOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *PutMetricFilterOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(nil)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *PutMetricFilterOutput) SerializeMembers(s smithy.ShapeSerializer) {
+}
+func (v *PutMetricFilterOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, nil, func(s *smithy.Schema) error {
+		switch s {
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationPutMetricFilterMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpPutMetricFilter{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutMetricFilter, schemas.PutMetricFilterRequest, nil)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpPutMetricFilter{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.PutMetricFilter, schemas.PutMetricFilterRequest, nil), output: &PutMetricFilterOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -135,19 +169,10 @@ func (c *Client) addOperationPutMetricFilterMiddlewares(stack *middleware.Stack,
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpPutMetricFilterValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "PutMetricFilter"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

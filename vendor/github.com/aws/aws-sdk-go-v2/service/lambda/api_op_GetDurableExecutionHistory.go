@@ -5,9 +5,10 @@ package lambda
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Retrieves the execution history for a [durable execution], showing all the steps, callbacks, and
@@ -63,6 +64,30 @@ type GetDurableExecutionHistoryInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetDurableExecutionHistoryInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetDurableExecutionHistoryRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetDurableExecutionHistoryInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DurableExecutionArn != nil {
+		s.WriteString(schemas.GetDurableExecutionHistoryRequest_DurableExecutionArn, *v.DurableExecutionArn)
+	}
+	if v.IncludeExecutionData != nil {
+		s.WriteBool(schemas.GetDurableExecutionHistoryRequest_IncludeExecutionData, *v.IncludeExecutionData)
+	}
+	if v.Marker != nil {
+		s.WriteString(schemas.GetDurableExecutionHistoryRequest_Marker, *v.Marker)
+	}
+	if v.MaxItems != 0 {
+		s.WriteInt32(schemas.GetDurableExecutionHistoryRequest_MaxItems, v.MaxItems)
+	}
+	if v.ReverseOrder != nil {
+		s.WriteBool(schemas.GetDurableExecutionHistoryRequest_ReverseOrder, *v.ReverseOrder)
+	}
+}
+
 // The response from the GetDurableExecutionHistory operation, containing the
 // execution history and events.
 type GetDurableExecutionHistoryOutput struct {
@@ -85,22 +110,38 @@ type GetDurableExecutionHistoryOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetDurableExecutionHistoryOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetDurableExecutionHistoryResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetDurableExecutionHistoryOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	serializeEvents(s, schemas.GetDurableExecutionHistoryResponse_Events, v.Events)
+	if v.NextMarker != nil {
+		s.WriteString(schemas.GetDurableExecutionHistoryResponse_NextMarker, *v.NextMarker)
+	}
+}
+func (v *GetDurableExecutionHistoryOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GetDurableExecutionHistoryResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GetDurableExecutionHistoryResponse_Events:
+			return deserializeEvents(d, schemas.GetDurableExecutionHistoryResponse_Events, &v.Events)
+		case schemas.GetDurableExecutionHistoryResponse_NextMarker:
+			v.NextMarker = new(string)
+			return d.ReadString(schemas.GetDurableExecutionHistoryResponse_NextMarker, v.NextMarker)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationGetDurableExecutionHistoryMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpGetDurableExecutionHistory{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetDurableExecutionHistory, schemas.GetDurableExecutionHistoryRequest, schemas.GetDurableExecutionHistoryResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpGetDurableExecutionHistory{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetDurableExecutionHistory, schemas.GetDurableExecutionHistoryRequest, schemas.GetDurableExecutionHistoryResponse), output: &GetDurableExecutionHistoryOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -110,19 +151,10 @@ func (c *Client) addOperationGetDurableExecutionHistoryMiddlewares(stack *middle
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpGetDurableExecutionHistoryValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "GetDurableExecutionHistory"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

@@ -4,8 +4,9 @@ package cloudwatchlogs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Deletes a saved CloudWatch Logs Insights query definition. A query definition
@@ -43,6 +44,18 @@ type DeleteQueryDefinitionInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DeleteQueryDefinitionInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DeleteQueryDefinitionRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DeleteQueryDefinitionInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.QueryDefinitionId != nil {
+		s.WriteString(schemas.DeleteQueryDefinitionRequest_queryDefinitionId, *v.QueryDefinitionId)
+	}
+}
+
 type DeleteQueryDefinitionOutput struct {
 
 	// A value of TRUE indicates that the operation succeeded. FALSE indicates that
@@ -55,22 +68,34 @@ type DeleteQueryDefinitionOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DeleteQueryDefinitionOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DeleteQueryDefinitionResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DeleteQueryDefinitionOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Success != false {
+		s.WriteBool(schemas.DeleteQueryDefinitionResponse_success, v.Success)
+	}
+}
+func (v *DeleteQueryDefinitionOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DeleteQueryDefinitionResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DeleteQueryDefinitionResponse_success:
+			return d.ReadBool(schemas.DeleteQueryDefinitionResponse_success, &v.Success)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDeleteQueryDefinitionMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDeleteQueryDefinition{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DeleteQueryDefinition, schemas.DeleteQueryDefinitionRequest, schemas.DeleteQueryDefinitionResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDeleteQueryDefinition{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DeleteQueryDefinition, schemas.DeleteQueryDefinitionRequest, schemas.DeleteQueryDefinitionResponse), output: &DeleteQueryDefinitionOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -80,19 +105,10 @@ func (c *Client) addOperationDeleteQueryDefinitionMiddlewares(stack *middleware.
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpDeleteQueryDefinitionValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DeleteQueryDefinition"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

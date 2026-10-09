@@ -4,9 +4,10 @@ package ecs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Describes one or more service revisions.
@@ -50,6 +51,16 @@ type DescribeServiceRevisionsInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeServiceRevisionsInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeServiceRevisionsRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeServiceRevisionsInput) SerializeMembers(s smithy.ShapeSerializer) {
+	serializeStringList(s, schemas.DescribeServiceRevisionsRequest_serviceRevisionArns, v.ServiceRevisionArns)
+}
+
 type DescribeServiceRevisionsOutput struct {
 
 	// Any failures associated with the call.
@@ -64,22 +75,35 @@ type DescribeServiceRevisionsOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeServiceRevisionsOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeServiceRevisionsResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeServiceRevisionsOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	serializeFailures(s, schemas.DescribeServiceRevisionsResponse_failures, v.Failures)
+	serializeServiceRevisions(s, schemas.DescribeServiceRevisionsResponse_serviceRevisions, v.ServiceRevisions)
+}
+func (v *DescribeServiceRevisionsOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DescribeServiceRevisionsResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DescribeServiceRevisionsResponse_failures:
+			return deserializeFailures(d, schemas.DescribeServiceRevisionsResponse_failures, &v.Failures)
+		case schemas.DescribeServiceRevisionsResponse_serviceRevisions:
+			return deserializeServiceRevisions(d, schemas.DescribeServiceRevisionsResponse_serviceRevisions, &v.ServiceRevisions)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDescribeServiceRevisionsMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDescribeServiceRevisions{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeServiceRevisions, schemas.DescribeServiceRevisionsRequest, schemas.DescribeServiceRevisionsResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDescribeServiceRevisions{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeServiceRevisions, schemas.DescribeServiceRevisionsRequest, schemas.DescribeServiceRevisionsResponse), output: &DescribeServiceRevisionsOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -89,19 +113,10 @@ func (c *Client) addOperationDescribeServiceRevisionsMiddlewares(stack *middlewa
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpDescribeServiceRevisionsValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DescribeServiceRevisions"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

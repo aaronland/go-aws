@@ -4,9 +4,10 @@ package lambda
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Returns your function's [recursive loop detection] configuration.
@@ -37,6 +38,18 @@ type GetFunctionRecursionConfigInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetFunctionRecursionConfigInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetFunctionRecursionConfigRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetFunctionRecursionConfigInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.FunctionName != nil {
+		s.WriteString(schemas.GetFunctionRecursionConfigRequest_FunctionName, *v.FunctionName)
+	}
+}
+
 type GetFunctionRecursionConfigOutput struct {
 
 	// If your function's recursive loop detection configuration is Allow , Lambda
@@ -57,22 +70,39 @@ type GetFunctionRecursionConfigOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *GetFunctionRecursionConfigOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.GetFunctionRecursionConfigResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *GetFunctionRecursionConfigOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.RecursiveLoop != "" {
+		s.WriteString(schemas.GetFunctionRecursionConfigResponse_RecursiveLoop, string(v.RecursiveLoop))
+	}
+}
+func (v *GetFunctionRecursionConfigOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.GetFunctionRecursionConfigResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.GetFunctionRecursionConfigResponse_RecursiveLoop:
+			var ev string
+			if err := d.ReadString(schemas.GetFunctionRecursionConfigResponse_RecursiveLoop, &ev); err != nil {
+				return err
+			}
+			v.RecursiveLoop = types.RecursiveLoop(ev)
+			return nil
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationGetFunctionRecursionConfigMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsRestjson1_serializeOpGetFunctionRecursionConfig{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetFunctionRecursionConfig, schemas.GetFunctionRecursionConfigRequest, schemas.GetFunctionRecursionConfigResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsRestjson1_deserializeOpGetFunctionRecursionConfig{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.GetFunctionRecursionConfig, schemas.GetFunctionRecursionConfigRequest, schemas.GetFunctionRecursionConfigResponse), output: &GetFunctionRecursionConfigOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -82,19 +112,10 @@ func (c *Client) addOperationGetFunctionRecursionConfigMiddlewares(stack *middle
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpGetFunctionRecursionConfigValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "GetFunctionRecursionConfig"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

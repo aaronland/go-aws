@@ -4,17 +4,20 @@ package cloudwatchlogs
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/schemas"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Creates a lookup table by uploading CSV data. You can use lookup tables to
-// enrich log data in CloudWatch Logs Insights queries with reference data such as
-// user details, application names, or error descriptions.
+// Creates a lookup table by uploading CSV data or from CloudWatch Logs query
+// results. You can use lookup tables to enrich log data in CloudWatch Logs queries
+// with reference data such as user details, application names, or error
+// descriptions.
 //
-// The table name must be unique within your account and Region. The CSV content
-// must include a header row with column names, use UTF-8 encoding, and not exceed
-// 10 MB.
+// The table name must be unique within your account and Region. You must specify
+// either tableBody or queryId , but not both. If you use tableBody , the CSV
+// content must include a header row with column names, use UTF-8 encoding, and not
+// exceed 10 MB.
 func (c *Client) CreateLookupTable(ctx context.Context, params *CreateLookupTableInput, optFns ...func(*Options)) (*CreateLookupTableOutput, error) {
 	if params == nil {
 		params = &CreateLookupTableInput{}
@@ -39,12 +42,6 @@ type CreateLookupTableInput struct {
 	// This member is required.
 	LookupTableName *string
 
-	// The CSV content of the lookup table. The first row must be a header row with
-	// column names. The content must use UTF-8 encoding and not exceed 10 MB.
-	//
-	// This member is required.
-	TableBody *string
-
 	// A description of the lookup table. The description can be up to 1024 characters
 	// long.
 	Description *string
@@ -53,12 +50,50 @@ type CreateLookupTableInput struct {
 	// specify a key, the data is encrypted with an Amazon Web Services-owned key.
 	KmsKeyId *string
 
+	// The ID of a completed or cancelled CloudWatch Logs query whose results populate
+	// the lookup table. A cancelled query populates the table with the partial results
+	// that were available when the query was stopped.
+	//
+	// You must specify either tableBody or queryId , but not both.
+	QueryId *string
+
+	// The CSV content of the lookup table. The first row must be a header row with
+	// column names. The content must use UTF-8 encoding and not exceed 10 MB.
+	//
+	// You must specify either tableBody or queryId , but not both.
+	TableBody *string
+
 	// A list of key-value pairs to associate with the lookup table. You can associate
 	// as many as 50 tags with a lookup table. Tags can help you organize and
 	// categorize your resources.
 	Tags map[string]string
 
 	noSmithyDocumentSerde
+}
+
+func (v *CreateLookupTableInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.CreateLookupTableRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *CreateLookupTableInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Description != nil {
+		s.WriteString(schemas.CreateLookupTableRequest_description, *v.Description)
+	}
+	if v.KmsKeyId != nil {
+		s.WriteString(schemas.CreateLookupTableRequest_kmsKeyId, *v.KmsKeyId)
+	}
+	if v.LookupTableName != nil {
+		s.WriteString(schemas.CreateLookupTableRequest_lookupTableName, *v.LookupTableName)
+	}
+	if v.QueryId != nil {
+		s.WriteString(schemas.CreateLookupTableRequest_queryId, *v.QueryId)
+	}
+	if v.TableBody != nil {
+		s.WriteString(schemas.CreateLookupTableRequest_tableBody, *v.TableBody)
+	}
+	serializeTags(s, schemas.CreateLookupTableRequest_tags, v.Tags)
 }
 
 type CreateLookupTableOutput struct {
@@ -76,22 +111,41 @@ type CreateLookupTableOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *CreateLookupTableOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.CreateLookupTableResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *CreateLookupTableOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.CreatedAt != nil {
+		s.WriteInt64(schemas.CreateLookupTableResponse_createdAt, *v.CreatedAt)
+	}
+	if v.LookupTableArn != nil {
+		s.WriteString(schemas.CreateLookupTableResponse_lookupTableArn, *v.LookupTableArn)
+	}
+}
+func (v *CreateLookupTableOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.CreateLookupTableResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.CreateLookupTableResponse_createdAt:
+			v.CreatedAt = new(int64)
+			return d.ReadInt64(schemas.CreateLookupTableResponse_createdAt, v.CreatedAt)
+		case schemas.CreateLookupTableResponse_lookupTableArn:
+			v.LookupTableArn = new(string)
+			return d.ReadString(schemas.CreateLookupTableResponse_lookupTableArn, v.LookupTableArn)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationCreateLookupTableMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpCreateLookupTable{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.CreateLookupTable, schemas.CreateLookupTableRequest, schemas.CreateLookupTableResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpCreateLookupTable{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.CreateLookupTable, schemas.CreateLookupTableRequest, schemas.CreateLookupTableResponse), output: &CreateLookupTableOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -101,19 +155,10 @@ func (c *Client) addOperationCreateLookupTableMiddlewares(stack *middleware.Stac
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpCreateLookupTableValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "CreateLookupTable"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {

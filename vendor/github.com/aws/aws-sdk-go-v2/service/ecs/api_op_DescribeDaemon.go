@@ -5,10 +5,11 @@ package ecs
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/ecs/schemas"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
+	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
 	smithytime "github.com/aws/smithy-go/time"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 	smithywaiter "github.com/aws/smithy-go/waiter"
 	"time"
 )
@@ -39,6 +40,18 @@ type DescribeDaemonInput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeDaemonInput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeDaemonRequest)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeDaemonInput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.DaemonArn != nil {
+		s.WriteString(schemas.DescribeDaemonRequest_daemonArn, *v.DaemonArn)
+	}
+}
+
 type DescribeDaemonOutput struct {
 
 	// The full description of the daemon, including the current revisions, deployment
@@ -51,22 +64,37 @@ type DescribeDaemonOutput struct {
 	noSmithyDocumentSerde
 }
 
+func (v *DescribeDaemonOutput) Serialize(s smithy.ShapeSerializer) {
+	s.WriteStruct(schemas.DescribeDaemonResponse)
+	v.SerializeMembers(s)
+	s.CloseStruct()
+}
+
+func (v *DescribeDaemonOutput) SerializeMembers(s smithy.ShapeSerializer) {
+	if v.Daemon != nil {
+		s.WriteStruct(schemas.DescribeDaemonResponse_daemon)
+		v.Daemon.SerializeMembers(s)
+		s.CloseStruct()
+	}
+}
+func (v *DescribeDaemonOutput) Deserialize(d smithy.ShapeDeserializer) error {
+	return smithy.ReadStruct(d, schemas.DescribeDaemonResponse, func(s *smithy.Schema) error {
+		switch s {
+		case schemas.DescribeDaemonResponse_daemon:
+			v.Daemon = &types.DaemonDetail{}
+			return v.Daemon.Deserialize(d)
+		}
+		return nil
+	})
+}
 func (c *Client) addOperationDescribeDaemonMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDescribeDaemon{}, middleware.After)
-	if err != nil {
+	if err := stack.Serialize.Add(&serializeRequestMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeDaemon, schemas.DescribeDaemonRequest, schemas.DescribeDaemonResponse)}, middleware.After); err != nil {
 		return err
 	}
-	err = stack.Deserialize.Add(&awsAwsjson11_deserializeOpDescribeDaemon{}, middleware.After)
-	if err != nil {
+	if err := stack.Deserialize.Add(&deserializeResponseMiddleware{options: &options, operationSchema: smithy.NewOperationSchema(schemas.DescribeDaemon, schemas.DescribeDaemonRequest, schemas.DescribeDaemonResponse), output: &DescribeDaemonOutput{}}, middleware.After); err != nil {
 		return err
 	}
 
-	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addComputeContentLength(stack); err != nil {
-		return err
-	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
@@ -76,19 +104,10 @@ func (c *Client) addOperationDescribeDaemonMiddlewares(stack *middleware.Stack, 
 	if err = addRecordResponseTiming(stack, options); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
-	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpDescribeDaemonValidationMiddleware(stack); err != nil {
-		return err
-	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DescribeDaemon"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
