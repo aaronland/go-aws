@@ -11,8 +11,8 @@ import (
 	"github.com/aws/smithy-go/middleware"
 )
 
-// Returns a list of Lambda functions, with the version-specific configuration of
-// each. Lambda returns up to 50 functions per call.
+// Returns a list of Lambda Event Functions, with the version-specific
+// configuration of each. Lambda returns up to 50 functions per call.
 //
 // Set FunctionVersion to ALL to include all published versions of each function
 // in addition to the unpublished version.
@@ -102,7 +102,9 @@ func (v *ListFunctionsOutput) Serialize(s smithy.ShapeSerializer) {
 }
 
 func (v *ListFunctionsOutput) SerializeMembers(s smithy.ShapeSerializer) {
-	serializeFunctionList(s, schemas.ListFunctionsResponse_Functions, v.Functions)
+	if v.Functions != nil {
+		serializeFunctionList(s, schemas.ListFunctionsResponse_Functions, v.Functions)
+	}
 	if v.NextMarker != nil {
 		s.WriteString(schemas.ListFunctionsResponse_NextMarker, *v.NextMarker)
 	}

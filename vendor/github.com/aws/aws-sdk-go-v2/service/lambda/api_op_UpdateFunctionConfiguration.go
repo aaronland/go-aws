@@ -10,7 +10,7 @@ import (
 	"github.com/aws/smithy-go/middleware"
 )
 
-// Modify the version-specific settings of a Lambda function.
+// Modifies the version-specific settings of a Lambda Event Function.
 //
 // When you update a function, Lambda provisions an instance of the function and
 // its supporting resources. If your function connects to a VPC, this process can
@@ -239,7 +239,9 @@ func (v *UpdateFunctionConfigurationInput) SerializeMembers(s smithy.ShapeSerial
 		v.EphemeralStorage.SerializeMembers(s)
 		s.CloseStruct()
 	}
-	serializeFileSystemConfigList(s, schemas.UpdateFunctionConfigurationRequest_FileSystemConfigs, v.FileSystemConfigs)
+	if v.FileSystemConfigs != nil {
+		serializeFileSystemConfigList(s, schemas.UpdateFunctionConfigurationRequest_FileSystemConfigs, v.FileSystemConfigs)
+	}
 	if v.FunctionName != nil {
 		s.WriteString(schemas.UpdateFunctionConfigurationRequest_FunctionName, *v.FunctionName)
 	}
@@ -254,7 +256,9 @@ func (v *UpdateFunctionConfigurationInput) SerializeMembers(s smithy.ShapeSerial
 	if v.KMSKeyArn != nil {
 		s.WriteString(schemas.UpdateFunctionConfigurationRequest_KMSKeyArn, *v.KMSKeyArn)
 	}
-	serializeLayerList(s, schemas.UpdateFunctionConfigurationRequest_Layers, v.Layers)
+	if v.Layers != nil {
+		serializeLayerList(s, schemas.UpdateFunctionConfigurationRequest_Layers, v.Layers)
+	}
 	if v.LoggingConfig != nil {
 		s.WriteStruct(schemas.UpdateFunctionConfigurationRequest_LoggingConfig)
 		v.LoggingConfig.SerializeMembers(s)
@@ -489,7 +493,9 @@ func (v *UpdateFunctionConfigurationOutput) Serialize(s smithy.ShapeSerializer) 
 }
 
 func (v *UpdateFunctionConfigurationOutput) SerializeMembers(s smithy.ShapeSerializer) {
-	serializeArchitecturesList(s, schemas.FunctionConfiguration_Architectures, v.Architectures)
+	if v.Architectures != nil {
+		serializeArchitecturesList(s, schemas.FunctionConfiguration_Architectures, v.Architectures)
+	}
 	if v.CapacityProviderConfig != nil {
 		s.WriteStruct(schemas.FunctionConfiguration_CapacityProviderConfig)
 		v.CapacityProviderConfig.SerializeMembers(s)
@@ -527,7 +533,9 @@ func (v *UpdateFunctionConfigurationOutput) SerializeMembers(s smithy.ShapeSeria
 		v.EphemeralStorage.SerializeMembers(s)
 		s.CloseStruct()
 	}
-	serializeFileSystemConfigList(s, schemas.FunctionConfiguration_FileSystemConfigs, v.FileSystemConfigs)
+	if v.FileSystemConfigs != nil {
+		serializeFileSystemConfigList(s, schemas.FunctionConfiguration_FileSystemConfigs, v.FileSystemConfigs)
+	}
 	if v.FunctionArn != nil {
 		s.WriteString(schemas.FunctionConfiguration_FunctionArn, *v.FunctionArn)
 	}
@@ -557,7 +565,9 @@ func (v *UpdateFunctionConfigurationOutput) SerializeMembers(s smithy.ShapeSeria
 	if v.LastUpdateStatusReasonCode != "" {
 		s.WriteString(schemas.FunctionConfiguration_LastUpdateStatusReasonCode, string(v.LastUpdateStatusReasonCode))
 	}
-	serializeLayersReferenceList(s, schemas.FunctionConfiguration_Layers, v.Layers)
+	if v.Layers != nil {
+		serializeLayersReferenceList(s, schemas.FunctionConfiguration_Layers, v.Layers)
+	}
 	if v.LoggingConfig != nil {
 		s.WriteStruct(schemas.FunctionConfiguration_LoggingConfig)
 		v.LoggingConfig.SerializeMembers(s)

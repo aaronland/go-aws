@@ -10,7 +10,8 @@ import (
 	"github.com/aws/smithy-go/middleware"
 )
 
-// Creates a capacity provider that manages compute resources for Lambda functions
+// Creates a capacity provider that manages compute resources for Lambda Event
+// Functions
 func (c *Client) CreateCapacityProvider(ctx context.Context, params *CreateCapacityProviderInput, optFns ...func(*Options)) (*CreateCapacityProviderOutput, error) {
 	if params == nil {
 		params = &CreateCapacityProviderInput{}
@@ -104,7 +105,9 @@ func (v *CreateCapacityProviderInput) SerializeMembers(s smithy.ShapeSerializer)
 		v.PropagateTags.SerializeMembers(s)
 		s.CloseStruct()
 	}
-	serializeTags(s, schemas.CreateCapacityProviderRequest_Tags, v.Tags)
+	if v.Tags != nil {
+		serializeTags(s, schemas.CreateCapacityProviderRequest_Tags, v.Tags)
+	}
 	if v.TelemetryConfig != nil {
 		s.WriteStruct(schemas.CreateCapacityProviderRequest_TelemetryConfig)
 		v.TelemetryConfig.SerializeMembers(s)
